@@ -21,6 +21,7 @@
 #define STDRDSCONNECTION_H
 
 #include <string>
+#include "librds.h"
 
 namespace std {
 
@@ -34,6 +35,19 @@ public:
   RDSconnection();
   ~RDSconnection();
   int Open(string path, int conn_type);
+  int Close();
+  int SetEventMask(rds_events_t evnt_mask);
+  int GetEventMask(rds_events_t &evnt_mask);
+  int GetEvent(rds_events_t &events);
+  int GetFlags(rds_flags_t &flags);
+  int GetPTYcode(int &pty_code);
+  int GetPIcode(int &pi_code);
+
+  int GetProgramName(char* buf);
+  int GetRadiotext(char* buf);
+  int GetLastRadiotext(char* buf);
+  int GetUTCDateTimeString(char* buf);
+  int GetLocalDateTimeString(char* buf);
 };
 
 };

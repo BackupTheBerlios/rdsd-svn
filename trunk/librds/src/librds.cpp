@@ -42,4 +42,76 @@ RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type)
   return 0;
 }
 
+int rds_close_connection(RDSConnectionHandle hnd)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->Close();
+}
+
+int rds_set_event_mask(RDSConnectionHandle hnd, rds_events_t evnt_mask)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->SetEventMask(evnt_mask);
+}
+
+int rds_get_event_mask(RDSConnectionHandle hnd, rds_events_t &evnt_mask)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetEventMask(evnt_mask);
+}
+
+int rds_get_event(RDSConnectionHandle hnd, rds_events_t &events)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetEvent(events);
+}
+
+int rds_get_flags(RDSConnectionHandle hnd, rds_flags_t &flags)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetFlags(flags);
+}
+
+int rds_get_pty_code(RDSConnectionHandle hnd, int &pty_code)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetPTYcode(pty_code);
+}
+
+int rds_get_pi_code(RDSConnectionHandle hnd, int &pi_code)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetPIcode(pi_code);
+}
+
+int rds_get_program_name(RDSConnectionHandle hnd, char* buf)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetProgramName(buf);
+}
+
+int rds_get_radiotext(RDSConnectionHandle hnd, char* buf)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetRadiotext(buf);
+}
+
+int rds_get_last_radiotext(RDSConnectionHandle hnd, char* buf)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetLastRadiotext(buf);
+}
+
+int rds_get_utc_datetime_string(RDSConnectionHandle hnd, char* buf)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetUTCDateTimeString(buf);
+}
+
+int rds_get_local_datetime_string(RDSConnectionHandle hnd, char* buf)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetLocalDateTimeString(buf);
+}
+
 

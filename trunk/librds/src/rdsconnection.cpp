@@ -36,4 +36,77 @@ int RDSconnection::Open(string path, int conn_type)
   return 0;
 }
 
+int RDSconnection::Close()
+{
+
+  return 0;
+}
+
+int RDSconnection::SetEventMask(rds_events_t evnt_mask)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetEventMask(rds_events_t &evnt_mask)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetEvent(rds_events_t &events)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetFlags(rds_flags_t &flags)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetPTYcode(int &pty_code)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetPIcode(int &pi_code)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetProgramName(char* buf)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetRadiotext(char* buf)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetLastRadiotext(char* buf)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetUTCDateTimeString(char* buf)
+{
+
+  return 0;
+}
+
+int RDSconnection::GetLocalDateTimeString(char* buf)
+{
+
+  return 0;
+}
+
+
 };
