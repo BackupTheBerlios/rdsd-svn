@@ -18,7 +18,7 @@
    <View0 Type="Source" />
   </Doc4>
   <Doc5 NumberOfViews="1" URL="file:/home/hans/develop/rdsdevel/rdsd/src/rdssource.h" >
-   <View0 Type="Source" />
+   <View0 line="0" Type="Source" />
   </Doc5>
   <Doc6 NumberOfViews="1" URL="file:/home/hans/develop/rdsdevel/rdsd/src/rdssource.cpp" >
    <View0 Type="Source" />
@@ -30,16 +30,16 @@
    <View0 Type="Source" />
   </Doc8>
   <Doc9 NumberOfViews="1" URL="file:/home/hans/develop/rdsdevel/rdsd/src/rdsdecoder.h" >
-   <View0 Type="Source" />
+   <View0 line="76" Type="Source" />
   </Doc9>
   <Doc10 NumberOfViews="1" URL="file:/home/hans/develop/rdsdevel/rdsd/src/rdsdecoder.cpp" >
    <View0 Type="Source" />
   </Doc10>
   <Doc11 NumberOfViews="1" URL="file:/home/hans/develop/rdsdevel/rdsd/src/rdsclient.cpp" >
-   <View0 Type="Source" />
+   <View0 line="163" Type="Source" />
   </Doc11>
   <Doc12 NumberOfViews="1" URL="file:/home/hans/develop/rdsdevel/rdsd/src/rdsclient.h" >
-   <View0 line="44" Type="Source" />
+   <View0 line="30" Type="Source" />
   </Doc12>
  </DocsAndViews>
  <pluginList>

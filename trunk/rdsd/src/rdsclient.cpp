@@ -112,9 +112,8 @@ int RDSclient::ExecCmd(RDSsourceList* psrclist)
     src = psrclist->at(src_num);
   }
   
-  if ((!src)&&(cmd_str!="esrc")) msg << "#ERROR: Unknown source." << endl;
-  
   if (cmd_str=="esrc"){
+    msg << "esrc" << endl;
     i=0;
     while (i<psrclist->size()){
       RDSsource* tmpsrc=psrclist->at(i);
@@ -123,24 +122,52 @@ int RDSclient::ExecCmd(RDSsourceList* psrclist)
     }
   }
   else if (cmd_str=="stat"){
+    msg << src_num << ":stat" << endl;
     if (src) msg << src->GetStatusStr() << endl;
   }
   else if (cmd_str=="sevnt"){
+    msg << src_num << ":sevnt" << endl;
     if (src){
       if (par_valid){
         while (event_masks.size()<=src_num) event_masks.push_back(0);
 	event_masks[src_num]=(rds_events_t)param;
-	msg << "OK." << endl;
+	msg << "OK" << endl;
       } 
-      else msg << "#ERROR: Invalid parameter in sevnt command." << endl;
+      else msg << "#ERROR: Invalid parameter." << endl;
     }
   }
   else if (cmd_str=="gevnt"){
+    msg << src_num << ":gevnt" << endl;
     if (src) msg << get_event_mask(src_num) << endl;
+  }
+  else if (cmd_str=="rtxt"){
+    msg << src_num << ":rtxt" << endl;
+    if (src) msg << src->Data.GetRadioText() << endl;
+  }
+  else if (cmd_str=="lrtxt"){
+    msg << src_num << ":lrtxt" << endl;
+    if (src) msg << src->Data.GetLastRadioText() << endl;
+  }
+  else if (cmd_str=="rflags"){
+    msg << src_num << ":rflags" << endl;
+    if (src) msg << src->Data.GetRDSFlags() << endl;
+  }
+  else if (cmd_str=="pname"){
+    msg << src_num << ":pname" << endl;
+    if (src) msg << src->Data.GetProgramName() << endl;
+  }
+  else if (cmd_str=="utcdt"){
+    msg << src_num << ":utcdt" << endl;
+    if (src) msg << src->Data.GetUTCDateTimeString() << endl;
+  }
+  else if (cmd_str=="locdt"){
+    msg << src_num << ":locdt" << endl;
+    if (src) msg << src->Data.GetLocalDateTimeString() << endl;
   }
   else{
     msg << "#ERROR: Illegal command <" << cmd << ">" << endl;
   }
+  if ((!src)&&(cmd_str!="esrc")) msg << "#ERROR: Unknown source." << endl;
   msg << "." << endl;
   text_to_send = text_to_send + msg.str();
   send_text();
