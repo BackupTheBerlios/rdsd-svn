@@ -35,9 +35,12 @@
       <terminal>true</terminal>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
-      <programargs></programargs>
+      <programargs/>
       <autocompile>true</autocompile>
       <envvars/>
+      <runarguments>
+        <librds></librds>
+      </runarguments>
     </run>
     <configurations>
       <optimized>
@@ -61,7 +64,7 @@
         <builddir></builddir>
         <topsourcedir></topsourcedir>
         <cppflags></cppflags>
-        <ldflags>-shared -Wl,-soname,librds.so.1 -o librds.so.1.0.1</ldflags>
+        <ldflags></ldflags>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
@@ -81,7 +84,7 @@
       <abortonerror>false</abortonerror>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin></makebin>
+      <makebin/>
       <prio>0</prio>
     </make>
   </kdevautoproject>
@@ -148,7 +151,7 @@
     <projectdoc>
       <docsystem>Doxygen-Dokumentation</docsystem>
       <docurl>librds.tag</docurl>
-      <usermanualurl></usermanualurl>
+      <usermanualurl/>
     </projectdoc>
   </kdevdocumentation>
   <substmap>

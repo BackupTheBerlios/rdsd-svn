@@ -25,12 +25,14 @@
 
 #include <iostream>
 #include <cstdlib>
+#include "librds.h"
 #include "rdsconnection.h"
 #include "rdsconnection.h"
 
 using namespace std;
 
-RDSConnectionHandle rds_open_connection(const char* rdsd_path, int conn_type)
+
+RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type)
 {
   RDSconnection* conn = new RDSconnection;
   if (conn){

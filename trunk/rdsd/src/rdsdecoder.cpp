@@ -65,6 +65,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     int b1 = Buf->at(i+1);
     int b2 = Buf->at(i+2);
     i+=3;
+    if (! is_valid_block(b0)) continue;
     int blocknum = (b0 >> 5) & 0x03;
     if (blocknum == last_block_num) continue;
     last_block_num = blocknum;
@@ -206,6 +207,17 @@ int RDSdecoder::GetPTYcode()
   return PTYcode;
 }
 
+bool RDSdecoder::is_valid_block(int b0)
+{
+  // This applies to SAA6588 data only.
+  // For other decoders, we'll have to think of something new...
+  if ((b0 & 0x03)==3){
+    //TODO: Add some error statistics here...
+    return false;
+  }
+  return true;
+}
+
 void RDSdecoder::set_event(rds_events_t evnt)
 {
   events |= evnt;
@@ -247,8 +259,6 @@ void RDSdecoder::set_radiotext(int first_index, char c1, char c2)
     set_event(RDS_EVENT_RADIOTEXT);
     radio_text_buf[first_index]   = c1;
     radio_text_buf[first_index+1] = c2;
-    //cout << "Radiotext " << first_index << " >" << c1 << "< >" << c2 << "<" << endl;
-    //cout << GetRadioText() << endl;
   }
   if ((c1=='\r')||(c2=='\r')) set_last_radiotext();
 }
@@ -263,7 +273,7 @@ void RDSdecoder::set_last_radiotext()
     radio_text_buf[i] = '\r';
     ++i;
   }
-  //cout << temp << endl;
+  cout << temp << endl;
   if (temp != last_radio_text){
     last_radio_text = temp;
     set_event(RDS_EVENT_LAST_RADIOTEXT);
@@ -275,19 +285,17 @@ void RDSdecoder::set_datetime_strings()
   const int month_days[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
   int Y,M,D,K;
   Y = (int)(((double)jul_date - 15078.2)/365.25);
-  M = (int)((((double)jul_date - 14956.1)-(int)((double)Y*365.25))/30.6001);
-  D = jul_date - 14956 - (int)((double)Y*365.25) - (int)((double)M * 30.6001);
+  M = (int)(((jul_date - 14956.1)-(int)(Y*365.25))/30.6001);
+  D = jul_date - 14956 - (int)(Y*365.25) - (int)(M * 30.6001);
   if ((M == 14)||(M == 15)) K=1; else K=0;
-  Y += K;
-  M--;
-  M -= (K*12);
-  Y += 1900;
-  ostringstream oss;
+  Y = Y + K + 1900;
+  M = M - 1 - (K*12);
+  ostringstream utcss;
 
-  oss << Y << "/" << D << "/" << M << " ";
-  oss << utc_hour << ":" << utc_minute << ":00";
+  utcss << Y << "/" << D << "/" << M << " ";
+  utcss << utc_hour << ":" << utc_minute << ":00";
 
-  utc_datetime_str = oss.str();
+  utc_datetime_str = utcss.str();
 
   int loc_hour = utc_hour; 
   int loc_min  = utc_minute + (utc_offset*30);
@@ -296,7 +304,7 @@ void RDSdecoder::set_datetime_strings()
     loc_min += 60;
     --loc_hour;
   }
-  while (loc_min > 60){
+  while (loc_min >= 60){
     loc_min -= 60;
     ++loc_hour;
   }
@@ -313,7 +321,7 @@ void RDSdecoder::set_datetime_strings()
       if (((Y % 4)==0)&&(M==2)) D=29;
     }
   }
-  if (loc_hour > 23){
+  if (loc_hour >= 24){
     loc_hour -= 24;
     ++D;
     int Dmax = (((Y % 4)==0)&&(M==2)) ? 29 : month_days[M-1];
@@ -326,13 +334,13 @@ void RDSdecoder::set_datetime_strings()
     }
   }
 
-  oss.clear();
+  ostringstream locss;
   
-  oss << Y << "/" << D << "/" << M << " ";
-  oss << loc_hour << ":" << loc_min << ":00";
+  locss << Y << "/" << D << "/" << M << " ";
+  locss << loc_hour << ":" << loc_min << ":00";
 
-  local_datetime_str = oss.str();
-  
+  local_datetime_str = locss.str();
+
   set_rds_flag(RDS_EVENT_DATETIME,true);
 }
 

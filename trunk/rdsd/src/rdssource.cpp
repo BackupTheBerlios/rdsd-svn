@@ -20,6 +20,9 @@
 #include "rdssource.h"
 #include "rdsd_errors.h"
 #include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
+//#include <linux/i2c.h>
 #include <sstream>
 
 namespace std {

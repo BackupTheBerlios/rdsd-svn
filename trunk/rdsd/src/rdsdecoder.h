@@ -40,7 +40,7 @@ enum RDSGroupType {GROUP_0A,GROUP_0B,GROUP_1A,GROUP_1B,GROUP_2A,GROUP_2B,
 		   
 enum TMCtype {TMC_GROUP,TMC_SINGLE,TMC_SYSTEM,TMC_TUNING,TMC_UNKNOWN};
 
-typedef vector<char> CharBuf;
+typedef vector<unsigned char> CharBuf;
 
 typedef unsigned long rds_flags_t;
 
@@ -96,6 +96,7 @@ private:
   int tmc_event;
   int tmc_location;
   rds_flags_t rds_flags;
+  bool is_valid_block(int b0);
   void set_event(rds_events_t evnt);
   void set_rds_flag(rds_flags_t flag, bool new_state);
   void set_pi_code(int new_code);

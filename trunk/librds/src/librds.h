@@ -23,6 +23,6 @@
 
 typedef void* RDSConnectionHandle;
 
-RDSConnectionHandle rds_open_connection(const char* rdsd_path, int conn_type);
+RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type);
 
 #endif
