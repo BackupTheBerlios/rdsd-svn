@@ -105,6 +105,7 @@ private:
   void set_last_radiotext();
   void set_datetime_strings();
   int next_expected_block;
+  int last_block_num;
   RDSGroupType group_type;
   int block1_lower5;
 };

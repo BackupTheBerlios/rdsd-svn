@@ -123,7 +123,7 @@ int RDSsource::Process()
       case SRCTYPE_FILE:
              ret = read(fd,&buf[0],3);
 	     if ((ret>0)&&(ret!=3)) ret = -1;
-	     usleep(10000);
+	     usleep(20000);
              break;
       case SRCTYPE_I2CDEV:
              ret = read(fd,&buf[0],6);

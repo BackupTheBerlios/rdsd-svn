@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "rdsdecoder.h"
 #include <sstream>
+#include <iostream> //test only
 
 namespace std {
 
@@ -26,6 +27,7 @@ RDSdecoder::RDSdecoder()
 {
   events = 0;
   next_expected_block = 0;
+  last_block_num = -1;
   group_type = GROUP_UNKNOWN;
   PIcode = -1;
   PTYcode = -1;
@@ -62,7 +64,10 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     int b0 = Buf->at(i);
     int b1 = Buf->at(i+1);
     int b2 = Buf->at(i+2);
+    i+=3;
     int blocknum = (b0 >> 5) & 0x03;
+    if (blocknum == last_block_num) continue;
+    last_block_num = blocknum;
     if (blocknum == next_expected_block){
       switch (blocknum){
         case 0: set_pi_code((b1 << 8) | b2); 
@@ -143,7 +148,6 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
       if (++next_expected_block > 3) next_expected_block = 0;
     }
     else next_expected_block = 0;
-    i+=3;
   }
 }
 
@@ -243,6 +247,8 @@ void RDSdecoder::set_radiotext(int first_index, char c1, char c2)
     set_event(RDS_EVENT_RADIOTEXT);
     radio_text_buf[first_index]   = c1;
     radio_text_buf[first_index+1] = c2;
+    //cout << "Radiotext " << first_index << " >" << c1 << "< >" << c2 << "<" << endl;
+    //cout << GetRadioText() << endl;
   }
   if ((c1=='\r')||(c2=='\r')) set_last_radiotext();
 }
@@ -251,12 +257,13 @@ void RDSdecoder::set_last_radiotext()
 {
   string temp;
   int i=0;
-  while (i<radio_text.size()){
+  while (i<radio_text_buf.size()){
     if (radio_text_buf[i] == '\r') break;
-    temp.push_back(radio_text[i]);
+    temp.push_back(radio_text_buf[i]);
     radio_text_buf[i] = '\r';
     ++i;
   }
+  //cout << temp << endl;
   if (temp != last_radio_text){
     last_radio_text = temp;
     set_event(RDS_EVENT_LAST_RADIOTEXT);

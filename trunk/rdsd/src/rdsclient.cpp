@@ -62,7 +62,7 @@ int RDSclient::CheckEvents(RDSsourceList* psrclist)
   while (i<psrclist->size()){
     RDSsource* src = psrclist->at(i);
     if (src){
-      rds_events_t requested_events = (src->Data.GetAllEvents() & get_event_mask(i));
+      rds_events_t requested_events = (src->Data.GetAllEvents()); // & get_event_mask(i));
       if (requested_events){
         ostringstream msg;
         msg << "!" << i << ":" << requested_events << endl;
@@ -219,9 +219,8 @@ bool RDSclient::send_text()
   if (text_to_send.empty()) return true;
   
   int bytes_sent = write(fd,text_to_send.c_str(),text_to_send.size());
-  text_to_send = "";
   if ((uint)bytes_sent != text_to_send.size()) return false; //TODO: Test only !!! 
-  
+  text_to_send = "";
   return true; 
 }
 

@@ -82,7 +82,10 @@ int RDShandler::WorkLoop()
   int ret = init_server();
   if (ret) return ret;
   ret = open_sources();
-  if (ret) return ret;
+  if (ret){
+    log.LogMsg(LL_ERR,"open_sources() failed.");
+    return ret;
+  } 
   
   calc_maxfd();
   
@@ -293,9 +296,12 @@ int RDShandler::open_sources()
     if (src){
       int ret = src->Open();
       if (ret) return ret;
+      int src_fd = src->GetFd();
+      if (src_fd>=0) FD_SET(src_fd,&all_fds);
     }
     ++i;
   }
+  return RDSD_OK;
 }
 
 void RDShandler::accept_unix_client()
