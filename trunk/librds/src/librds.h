@@ -23,6 +23,21 @@
 
 typedef void* RDSConnectionHandle;
 
+const int CONN_TYPE_TCPIP = 1;
+const int CONN_TYPE_UNIX  = 2;
+
+enum LibRdsErr {
+  RDS_OK = 0,
+  RDS_UNKNOWN_ERROR,
+  RDS_ILLEGAL_CONN_TYPE,
+  RDS_SERVER_NOT_FOUND,
+  RDS_SOCKET_ERROR,
+  RDS_CONNECT_ERROR,
+  RDS_OPEN_ERROR,
+  RDS_SOCKET_NOT_OPEN,
+  RDS_CLOSE_ERROR,
+}; 
+
 typedef unsigned long rds_flags_t;
 
 const rds_flags_t RDS_FLAG_IS_TP              = 0x0001;
@@ -46,19 +61,20 @@ const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0040;
 
 extern "C" {
 
-RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type);
+RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port);
 int rds_close_connection(RDSConnectionHandle hnd);
-int rds_set_event_mask(RDSConnectionHandle hnd, rds_events_t evnt_mask);
-int rds_get_event_mask(RDSConnectionHandle hnd, rds_events_t &evnt_mask);
-int rds_get_event(RDSConnectionHandle hnd, rds_events_t &events);
-int rds_get_flags(RDSConnectionHandle hnd, rds_flags_t &flags);
-int rds_get_pty_code(RDSConnectionHandle hnd, int &pty_code);
-int rds_get_pi_code(RDSConnectionHandle hnd, int &pi_code);
-int rds_get_program_name(RDSConnectionHandle hnd, char* buf);
-int rds_get_radiotext(RDSConnectionHandle hnd, char* buf);
-int rds_get_last_radiotext(RDSConnectionHandle hnd, char* buf);
-int rds_get_utc_datetime_string(RDSConnectionHandle hnd, char* buf);
-int rds_get_local_datetime_string(RDSConnectionHandle hnd, char* buf);
+int rds_enum_sources(RDSConnectionHandle hnd, char* buf);
+int rds_set_event_mask(RDSConnectionHandle hnd, int src, rds_events_t evnt_mask);
+int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t &evnt_mask);
+int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t &events);
+int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t &flags);
+int rds_get_pty_code(RDSConnectionHandle hnd, int src, int &pty_code);
+int rds_get_pi_code(RDSConnectionHandle hnd, int src, int &pi_code);
+int rds_get_program_name(RDSConnectionHandle hnd, int src, char* buf);
+int rds_get_radiotext(RDSConnectionHandle hnd, int src, char* buf);
+int rds_get_last_radiotext(RDSConnectionHandle hnd, int src, char* buf);
+int rds_get_utc_datetime_string(RDSConnectionHandle hnd, int src, char* buf);
+int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf);
 
 }
 

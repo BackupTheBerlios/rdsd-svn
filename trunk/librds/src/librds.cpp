@@ -32,11 +32,11 @@
 using namespace std;
 
 
-RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type)
+RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port)
 {
   RDSconnection* conn = new RDSconnection;
   if (conn){
-    if (conn->Open(rdsd_path,conn_type)) return 0;
+    if (conn->Open(rdsd_path,conn_type,port)) return 0;
     return (void*)conn;
   } 
   return 0;
@@ -45,73 +45,81 @@ RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type)
 int rds_close_connection(RDSConnectionHandle hnd)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->Close();
+  int ret = conn->Close();
+  delete conn;
+  return ret;
 }
 
-int rds_set_event_mask(RDSConnectionHandle hnd, rds_events_t evnt_mask)
+int rds_enum_sources(RDSConnectionHandle hnd, char* buf, int bufsize)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->SetEventMask(evnt_mask);
+  return conn->EnumSources(buf,bufsize);
 }
 
-int rds_get_event_mask(RDSConnectionHandle hnd, rds_events_t &evnt_mask)
+int rds_set_event_mask(RDSConnectionHandle hnd, int src, rds_events_t evnt_mask)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetEventMask(evnt_mask);
+  return conn->SetEventMask(src, evnt_mask);
 }
 
-int rds_get_event(RDSConnectionHandle hnd, rds_events_t &events)
+int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t &evnt_mask)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetEvent(events);
+  return conn->GetEventMask(src, evnt_mask);
 }
 
-int rds_get_flags(RDSConnectionHandle hnd, rds_flags_t &flags)
+int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t &events)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetFlags(flags);
+  return conn->GetEvent(src, events);
 }
 
-int rds_get_pty_code(RDSConnectionHandle hnd, int &pty_code)
+int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t &flags)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetPTYcode(pty_code);
+  return conn->GetFlags(src, flags);
 }
 
-int rds_get_pi_code(RDSConnectionHandle hnd, int &pi_code)
+int rds_get_pty_code(RDSConnectionHandle hnd, int src, int &pty_code)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetPIcode(pi_code);
+  return conn->GetPTYcode(src, pty_code);
 }
 
-int rds_get_program_name(RDSConnectionHandle hnd, char* buf)
+int rds_get_pi_code(RDSConnectionHandle hnd, int src, int &pi_code)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetProgramName(buf);
+  return conn->GetPIcode(src, pi_code);
 }
 
-int rds_get_radiotext(RDSConnectionHandle hnd, char* buf)
+int rds_get_program_name(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetRadiotext(buf);
+  return conn->GetProgramName(src, buf);
 }
 
-int rds_get_last_radiotext(RDSConnectionHandle hnd, char* buf)
+int rds_get_radiotext(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetLastRadiotext(buf);
+  return conn->GetRadiotext(src, buf);
 }
 
-int rds_get_utc_datetime_string(RDSConnectionHandle hnd, char* buf)
+int rds_get_last_radiotext(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetUTCDateTimeString(buf);
+  return conn->GetLastRadiotext(src, buf);
 }
 
-int rds_get_local_datetime_string(RDSConnectionHandle hnd, char* buf)
+int rds_get_utc_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetLocalDateTimeString(buf);
+  return conn->GetUTCDateTimeString(src, buf);
+}
+
+int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetLocalDateTimeString(src, buf);
 }
 
 

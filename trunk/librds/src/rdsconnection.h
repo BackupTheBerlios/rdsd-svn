@@ -34,20 +34,25 @@ class RDSconnection{
 public:
   RDSconnection();
   ~RDSconnection();
-  int Open(string path, int conn_type);
+  int Open(string path, int conn_type, int port);
   int Close();
-  int SetEventMask(rds_events_t evnt_mask);
-  int GetEventMask(rds_events_t &evnt_mask);
-  int GetEvent(rds_events_t &events);
-  int GetFlags(rds_flags_t &flags);
-  int GetPTYcode(int &pty_code);
-  int GetPIcode(int &pi_code);
+  int EnumSources(char* buf, int bufsize);
+  int SetEventMask(int src, rds_events_t evnt_mask);
+  int GetEventMask(int src, rds_events_t &evnt_mask);
+  int GetEvent(int src, rds_events_t &events);
+  int GetFlags(int src, rds_flags_t &flags);
+  int GetPTYcode(int src, int &pty_code);
+  int GetPIcode(int src, int &pi_code);
 
-  int GetProgramName(char* buf);
-  int GetRadiotext(char* buf);
-  int GetLastRadiotext(char* buf);
-  int GetUTCDateTimeString(char* buf);
-  int GetLocalDateTimeString(char* buf);
+  int GetProgramName(int src, char* buf);
+  int GetRadiotext(int src, char* buf);
+  int GetLastRadiotext(int src, char* buf);
+  int GetUTCDateTimeString(int src, char* buf);
+  int GetLocalDateTimeString(int src, char* buf);
+private:
+  int sock_fd;
+  int open_tcpip(string path, int port);
+  int open_unix(string path);
 };
 
 };

@@ -18,95 +18,153 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "rdsconnection.h"
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+//#include <fcntl.h>
+#include <sstream>
 
 namespace std {
 
 RDSconnection::RDSconnection()
 {
+  sock_fd = -1;
 }
 
 
 RDSconnection::~RDSconnection()
 {
+  Close();
 }
 
-int RDSconnection::Open(string path, int conn_type)
+int RDSconnection::Open(string path, int conn_type, int port)
 {
-
-  return 0;
+  switch (conn_type){
+    case CONN_TYPE_TCPIP: return open_tcpip(path,port); 
+                          break;
+    case CONN_TYPE_UNIX:  return open_unix(path);
+                          break;
+    default: return RDS_ILLEGAL_CONN_TYPE;
+  }
 }
 
 int RDSconnection::Close()
 {
-
+  if (sock_fd < 0) return RDS_SOCKET_NOT_OPEN;
+  if (close(sock_fd)) return RDS_CLOSE_ERROR;
   return 0;
 }
 
-int RDSconnection::SetEventMask(rds_events_t evnt_mask)
+int RDSconnection::EnumSources(char* buf, int bufsize)
 {
 
   return 0;
 }
 
-int RDSconnection::GetEventMask(rds_events_t &evnt_mask)
+int RDSconnection::SetEventMask(int src, rds_events_t evnt_mask)
 {
 
   return 0;
 }
 
-int RDSconnection::GetEvent(rds_events_t &events)
+int RDSconnection::GetEventMask(int src, rds_events_t &evnt_mask)
 {
 
   return 0;
 }
 
-int RDSconnection::GetFlags(rds_flags_t &flags)
+int RDSconnection::GetEvent(int src, rds_events_t &events)
 {
 
   return 0;
 }
 
-int RDSconnection::GetPTYcode(int &pty_code)
+int RDSconnection::GetFlags(int src, rds_flags_t &flags)
 {
 
   return 0;
 }
 
-int RDSconnection::GetPIcode(int &pi_code)
+int RDSconnection::GetPTYcode(int src, int &pty_code)
 {
 
   return 0;
 }
 
-int RDSconnection::GetProgramName(char* buf)
+int RDSconnection::GetPIcode(int src, int &pi_code)
 {
 
   return 0;
 }
 
-int RDSconnection::GetRadiotext(char* buf)
+int RDSconnection::GetProgramName(int src, char* buf)
 {
 
   return 0;
 }
 
-int RDSconnection::GetLastRadiotext(char* buf)
+int RDSconnection::GetRadiotext(int src, char* buf)
 {
 
   return 0;
 }
 
-int RDSconnection::GetUTCDateTimeString(char* buf)
+int RDSconnection::GetLastRadiotext(int src, char* buf)
 {
 
   return 0;
 }
 
-int RDSconnection::GetLocalDateTimeString(char* buf)
+int RDSconnection::GetUTCDateTimeString(int src, char* buf)
 {
 
   return 0;
 }
 
+int RDSconnection::GetLocalDateTimeString(int src, char* buf)
+{
+
+  return 0;
+}
+
+// private member functions -------------------------------------
+
+int RDSconnection::open_tcpip(string path, int port)
+{
+  struct hostent *server;
+  struct in_addr inaddr;
+  if (inet_aton(path.c_str(),&inaddr))
+    server = gethostbyaddr((char*)&inaddr,sizeof(inaddr),AF_INET);
+  else
+    server = gethostbyname(path.c_str());
+
+  if (!server) return RDS_SERVER_NOT_FOUND;
+
+  struct sockaddr_in sock_addr;
+
+  sock_addr.sin_family = AF_INET;
+  sock_addr.sin_port = htons(port);
+  memcpy(&sock_addr.sin_addr, server->h_addr_list[0], sizeof(sock_addr.sin_addr));
+
+  sock_fd = socket(PF_INET, SOCK_STREAM, 0);
+  if (sock_fd < 0) return RDS_SOCKET_ERROR;
+
+  if (connect(sock_fd,(struct sockaddr*)&sock_addr,sizeof(sock_addr))){
+    Close();
+    return RDS_CONNECT_ERROR;
+  }
+  
+  return RDS_OK;
+}
+
+int RDSconnection::open_unix(string path)
+{
+
+  return 0;
+}
 
 };
