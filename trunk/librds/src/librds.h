@@ -36,6 +36,11 @@ enum LibRdsErr {
   RDS_OPEN_ERROR,
   RDS_SOCKET_NOT_OPEN,
   RDS_CLOSE_ERROR,
+  RDS_SOCKET_ALREADY_OPEN,
+  RDS_BIND_ERROR,
+  RDS_CHMOD_ERROR,
+  RDS_WRITE_ERROR,
+  RDS_READ_ERROR,
 }; 
 
 typedef unsigned long rds_flags_t;
@@ -61,7 +66,7 @@ const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0040;
 
 extern "C" {
 
-RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port);
+RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port, char* unix_path);
 int rds_close_connection(RDSConnectionHandle hnd);
 int rds_enum_sources(RDSConnectionHandle hnd, char* buf);
 int rds_set_event_mask(RDSConnectionHandle hnd, int src, rds_events_t evnt_mask);

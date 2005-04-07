@@ -20,8 +20,9 @@
 #ifndef STDRDSCONNECTION_H
 #define STDRDSCONNECTION_H
 
-#include <string>
 #include "librds.h"
+#include <string>
+#include <vector>
 
 namespace std {
 
@@ -34,7 +35,7 @@ class RDSconnection{
 public:
   RDSconnection();
   ~RDSconnection();
-  int Open(string path, int conn_type, int port);
+  int Open(string serv_path, int conn_type, int port, string my_path);
   int Close();
   int EnumSources(char* buf, int bufsize);
   int SetEventMask(int src, rds_events_t evnt_mask);
@@ -51,8 +52,14 @@ public:
   int GetLocalDateTimeString(int src, char* buf);
 private:
   int sock_fd;
+  vector<char> read_buf;
+  string read_str;
+  int last_scan_state;
   int open_tcpip(string path, int port);
-  int open_unix(string path);
+  int open_unix(string serv_path, string my_path);
+  int send_command(int src, string cmd);
+  int process();
+  void process_msg();
 };
 
 };

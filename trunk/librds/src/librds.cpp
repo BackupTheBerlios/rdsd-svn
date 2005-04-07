@@ -32,11 +32,11 @@
 using namespace std;
 
 
-RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port)
+RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port, char* unix_path)
 {
   RDSconnection* conn = new RDSconnection;
   if (conn){
-    if (conn->Open(rdsd_path,conn_type,port)) return 0;
+    if (conn->Open(rdsd_path,conn_type,port,unix_path)) return 0;
     return (void*)conn;
   } 
   return 0;

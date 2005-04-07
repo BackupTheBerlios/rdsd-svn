@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "rdsconnection.h"
 #include <netdb.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/time.h>
@@ -33,6 +34,8 @@ namespace std {
 RDSconnection::RDSconnection()
 {
   sock_fd = -1;
+  read_buf.resize(2048);
+  last_scan_state = 0;
 }
 
 
@@ -41,12 +44,12 @@ RDSconnection::~RDSconnection()
   Close();
 }
 
-int RDSconnection::Open(string path, int conn_type, int port)
+int RDSconnection::Open(string serv_path, int conn_type, int port, string my_path)
 {
   switch (conn_type){
-    case CONN_TYPE_TCPIP: return open_tcpip(path,port); 
+    case CONN_TYPE_TCPIP: return open_tcpip(serv_path,port); 
                           break;
-    case CONN_TYPE_UNIX:  return open_unix(path);
+    case CONN_TYPE_UNIX:  return open_unix(serv_path,my_path);
                           break;
     default: return RDS_ILLEGAL_CONN_TYPE;
   }
@@ -56,7 +59,7 @@ int RDSconnection::Close()
 {
   if (sock_fd < 0) return RDS_SOCKET_NOT_OPEN;
   if (close(sock_fd)) return RDS_CLOSE_ERROR;
-  return 0;
+  return RDS_OK;
 }
 
 int RDSconnection::EnumSources(char* buf, int bufsize)
@@ -67,13 +70,23 @@ int RDSconnection::EnumSources(char* buf, int bufsize)
 
 int RDSconnection::SetEventMask(int src, rds_events_t evnt_mask)
 {
+  ostringstream oss;
+  oss << "sevnt " << evnt_mask; 
+  int ret = send_command(src,oss.str());
+  if (ret) return ret;
 
-  return 0;
+  //Wait for acknowledge...
+  
+  return RDS_OK;
 }
 
 int RDSconnection::GetEventMask(int src, rds_events_t &evnt_mask)
 {
+  int ret = send_command(src,"gevnt");
+  if (ret) return ret;
 
+  //Wait for response...
+  
   return 0;
 }
 
@@ -135,6 +148,7 @@ int RDSconnection::GetLocalDateTimeString(int src, char* buf)
 
 int RDSconnection::open_tcpip(string path, int port)
 {
+  if (sock_fd>=0) return RDS_SOCKET_ALREADY_OPEN;
   struct hostent *server;
   struct in_addr inaddr;
   if (inet_aton(path.c_str(),&inaddr))
@@ -161,10 +175,96 @@ int RDSconnection::open_tcpip(string path, int port)
   return RDS_OK;
 }
 
-int RDSconnection::open_unix(string path)
+int RDSconnection::open_unix(string serv_path, string my_path)
+{
+  if (sock_fd>=0) return RDS_SOCKET_ALREADY_OPEN;
+  
+  struct sockaddr_un sock_addr;
+  // Create unix domain socket
+  sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (sock_fd < 0) return RDS_SOCKET_ERROR;
+  // Write sock_addr with own address
+  memset(&sock_addr,0,sizeof(sock_addr));
+  sock_addr.sun_family = AF_UNIX;
+  strncpy(sock_addr.sun_path,my_path.c_str(),sizeof(sock_addr.sun_path)-1);
+  int size = strlen(sock_addr.sun_path)+sizeof(sock_addr.sun_family);
+  unlink(sock_addr.sun_path);
+  if (bind(sock_fd,(struct sockaddr*)&sock_addr,size)<0){
+    close(sock_fd);
+    return RDS_BIND_ERROR;
+  }
+  if (chmod(sock_addr.sun_path,S_IRWXU)<0){
+    Close();
+    return RDS_CHMOD_ERROR;
+  }
+  // Write sock_addr with server address
+  memset(&sock_addr,0,sizeof(sock_addr));
+  sock_addr.sun_family = AF_UNIX;
+  strncpy(sock_addr.sun_path,serv_path.c_str(),sizeof(sock_addr.sun_path)-1);
+  size = strlen(sock_addr.sun_path)+sizeof(sock_addr.sun_family);
+
+  if (connect(sock_fd,(struct sockaddr*)&sock_addr,size)<0){
+    Close();
+    return RDS_CONNECT_ERROR;
+  }
+  return RDS_OK;
+}
+
+int RDSconnection::send_command(int src, string cmd)
+{
+  if (sock_fd<0) return RDS_SOCKET_NOT_OPEN;
+  ostringstream oss;
+  if (src>=0) oss << src << ":";
+  oss << cmd << endl;
+  int n = oss.str().size();
+  if (write(sock_fd,oss.str().c_str(),n)!=n) return RDS_WRITE_ERROR;
+  return RDS_OK;
+}
+
+int RDSconnection::process()
+{
+  if (sock_fd<0) return RDS_SOCKET_NOT_OPEN;
+  int rd_cnt = read(sock_fd,&read_buf[0],read_buf.size());
+  if (rd_cnt<0) return RDS_READ_ERROR;
+  enum ScanState {ssEOL=0,ssData,ssComment,ssTerm};
+  ScanState state = (ScanState)last_scan_state;
+  int i=0;
+  while (i<rd_cnt){
+    char ch = read_buf[i];
+    switch (ch){
+      case '\n':
+      case '\r': if (state == ssTerm) process_msg();
+                 else read_str.push_back(ch);
+                 state = ssEOL;
+                 break;
+      case '.' : if (state == ssEOL) state=ssTerm;
+                 else read_str.push_back(ch);
+                 break;
+      case '#' : if (state == ssEOL) state=ssComment;
+                 else read_str.push_back(ch);
+		 break;
+      default:   switch (state){
+                   case ssEOL:  read_str.push_back(ch);
+		                state = ssData;
+			        break;
+	           case ssData: read_str.push_back(ch);
+		                break;
+		   case ssTerm: read_str.push_back('.');
+		                read_str.push_back(ch);
+		                state = ssData;
+			        break;
+		   case ssComment: ;
+                 }
+    }
+    last_scan_state = state;
+    ++i;
+  }
+  return RDS_OK;
+}
+
+void RDSconnection::process_msg()
 {
 
-  return 0;
 }
 
 };
