@@ -31,7 +31,23 @@
 
 using namespace std;
 
-
+/*!
+  rds_open_connection() tries to establish a connection with rdsd. rds_open_connection()
+  itself does not transfer any data. After a succesful rds_open_connection(), you can use
+  any of the query functions.
+  
+  \param rdsd_path For TCP/IP, the name or IP of the server. For unix domain socket,
+                   the filename the server uses.
+  \param conn_type One of CONN_TYPE_TCPIP or CONN_TYPE_UNIX. The latter is only
+                   possible on systems where unix domain sockets are available.
+  \param port if conn_type=CONN_TYPE_TCPIP, you must pass the servers port here.
+              if conn_type=CONN_TYPE_UNIX, this parameter is ignored.
+  \param unix_path if conn_type=CONN_TYPE_UNIX, the name of a temporary file used to
+                   bind the client socket to. This must be writeable by your user.
+		   if conn_type=CONN_TYPE_TCPIP, this parameter is ignored.
+  \return rds_open_connection() returns a connection handle that is needed for all
+          subsequent function calls. If rds_open_connection() fails, the return value is NULL.
+*/
 RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port, char* unix_path)
 {
   RDSconnection* conn = new RDSconnection;
@@ -42,6 +58,13 @@ RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port
   return 0;
 }
 
+/*!
+  rds_close_connection() closes a connection and frees the ressources used for that
+  connection.
+  \param hnd A valid handle returned by rds_open_connection(). After calling
+             rds_close_connection(), the handle is invalid and must not be used anymore.
+  \return RDS_OK on success, RDS_SOCKET_NOT_OPEN or RDS_CLOSE_ERROR on errors.
+*/
 int rds_close_connection(RDSConnectionHandle hnd)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
@@ -50,6 +73,18 @@ int rds_close_connection(RDSConnectionHandle hnd)
   return ret;
 }
 
+/*!
+  rds_enum_sources() is usually the first function you will call after a successful
+  rds_open_connection(). It fills a buffer with a number of ASCII lines. Each line
+  represents an RDS input source that is used by rdsd. Each line starts with a number,
+  followed by a colon (':'). This is the source number which you need to query data
+  from that source. The rest of the line is a description of the source.
+  \param hnd A valid handle returned by rds_open_connection().
+  \param buf Pointer to a buffer that receives the source description strings. The buffer
+             should be large enough for several strings (4 kilobytes might be a safe value).
+  \param bufsize Size of the buffer pointed to by buf, in bytes.
+  \return Returns RDS_OK (0) on success. If the function fails, a non-zero error code is returned.
+*/
 int rds_enum_sources(RDSConnectionHandle hnd, char* buf, int bufsize)
 {
   RDSconnection* conn = (RDSconnection*)hnd;

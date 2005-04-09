@@ -33,22 +33,37 @@ Class used in librds. For each client connection to rdsd, one object of this cla
 */
 class RDSconnection{
 public:
+  //! The constructor.
   RDSconnection();
+  //! The destructor.
   ~RDSconnection();
+  //! Open a connection to rdsd.
   int Open(string serv_path, int conn_type, int port, string my_path);
+  //! Close the connection.
   int Close();
+  //! Get the list of sources known by rdsd.
   int EnumSources(char* buf, int bufsize);
+  //! Set the evnt mask for a source.
   int SetEventMask(int src, rds_events_t evnt_mask);
+  //! Get the active event mask for a source.
   int GetEventMask(int src, rds_events_t &evnt_mask);
+  //! Get the events that occured since the last call.
   int GetEvent(int src, rds_events_t &events);
+  //! Get some RDS flags from a source.
   int GetFlags(int src, rds_flags_t &flags);
+  //! Get the program type code.
   int GetPTYcode(int src, int &pty_code);
+  //! Get the program identification code.
   int GetPIcode(int src, int &pi_code);
-
+  //! Get the program name.
   int GetProgramName(int src, char* buf);
+  //! Get the current radio text buffer.
   int GetRadiotext(int src, char* buf);
+  //! Get the last complete radio text string.
   int GetLastRadiotext(int src, char* buf);
+  //! Get UTC date and time as a string.
   int GetUTCDateTimeString(int src, char* buf);
+  //! Get local date and time as a string.
   int GetLocalDateTimeString(int src, char* buf);
 private:
   int sock_fd;

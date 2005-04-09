@@ -31,6 +31,9 @@
 
 namespace std {
 
+/*!
+  The default constructor just does some variable initialization.
+*/
 RDSconnection::RDSconnection()
 {
   sock_fd = -1;
@@ -38,12 +41,30 @@ RDSconnection::RDSconnection()
   last_scan_state = 0;
 }
 
-
+/*!
+  The destructor also closes the socket if it is still open.
+*/
 RDSconnection::~RDSconnection()
 {
   Close();
 }
 
+/*!
+  Open() tries to establish a connection with rdsd. Open() itself does not
+  transfer any data. After a succesful Open(), you can use any of the query
+  functions. You can also use SetEventMask() to receive notifications if
+  an RDS source has decoded new data.
+  \param serv_path For TCP/IP, the name or IP of the server. For unix domain socket,
+                   the filename the server uses.
+  \param conn_type One of CONN_TYPE_TCPIP or CONN_TYPE_UNIX. The latter is only
+                   possible on systems where unix domain sockets are available.
+  \param port if conn_type=CONN_TYPE_TCPIP, you must pass the servers port here.
+              if conn_type=CONN_TYPE_UNIX, this parameter is ignored.
+  \param my_path if conn_type=CONN_TYPE_UNIX, the name of a temporary file used to
+                 bind the client socket to. This must be writeable by your user.
+  \return On success, Open() returns RDS_OK (0). Otherwise, a positive error code is
+          returned.
+*/
 int RDSconnection::Open(string serv_path, int conn_type, int port, string my_path)
 {
   switch (conn_type){
@@ -55,6 +76,11 @@ int RDSconnection::Open(string serv_path, int conn_type, int port, string my_pat
   }
 }
 
+/*!
+  Close() closes a connection. Only one connection can be handled by a RDSconnection
+  object. You need to call Close() before you can open a new connection.
+  \return RDS_OK on success, RDS_SOCKET_NOT_OPEN or RDS_CLOSE_ERROR on errors.
+*/
 int RDSconnection::Close()
 {
   if (sock_fd < 0) return RDS_SOCKET_NOT_OPEN;
@@ -62,6 +88,17 @@ int RDSconnection::Close()
   return RDS_OK;
 }
 
+/*!
+  EnumSources() is usually the first function you will call after a successful Open().
+  It fills a buffer with a number of ASCII lines. Each line represents an RDS input
+  source that is used by rdsd. Each line starts with a number, followed by a colon (':').
+  This is the source number which you need to query data from that source. The rest of
+  the line is a description of the source.
+  \param buf Pointer to a buffer that receives the source description strings. The buffer
+             should be large enough for several strings (4 kilobytes might be a safe value).
+  \param bufsize Size of the buffer pointed to by buf, in bytes.
+  \return Returns RDS_OK (0) on success. If the function fails, a non-zero error code is returned.
+*/
 int RDSconnection::EnumSources(char* buf, int bufsize)
 {
 
