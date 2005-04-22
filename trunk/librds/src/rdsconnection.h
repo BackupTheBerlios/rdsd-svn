@@ -75,6 +75,7 @@ private:
   int send_command(int src, string cmd);
   int process();
   void process_msg();
+  void process_event_msg();
 };
 
 };

@@ -263,17 +263,26 @@ int RDSconnection::process()
   if (sock_fd<0) return RDS_SOCKET_NOT_OPEN;
   int rd_cnt = read(sock_fd,&read_buf[0],read_buf.size());
   if (rd_cnt<0) return RDS_READ_ERROR;
-  enum ScanState {ssEOL=0,ssData,ssComment,ssTerm};
+  enum ScanState {ssEOL=0,ssData,ssComment,ssTerm,ssEvent};
   ScanState state = (ScanState)last_scan_state;
   int i=0;
   while (i<rd_cnt){
     char ch = read_buf[i];
     switch (ch){
       case '\n':
-      case '\r': if (state == ssTerm) process_msg();
-                 else read_str.push_back(ch);
-                 state = ssEOL;
+      case '\r': switch (state) {
+                   case ssTerm:  process_msg();
+		                 break;
+		   case ssEvent: process_event_msg();
+		                 break; 
+		   case ssEOL:   break;
+                   default: read_str.push_back(ch);
+		 }
+		 state = ssEOL;
                  break;
+      case '!' : if (state == ssEOL) state=ssEvent;
+                 else read_str.push_back(ch);
+		 break;
       case '.' : if (state == ssEOL) state=ssTerm;
                  else read_str.push_back(ch);
                  break;
@@ -284,6 +293,7 @@ int RDSconnection::process()
                    case ssEOL:  read_str.push_back(ch);
 		                state = ssData;
 			        break;
+		   case ssEvent:
 	           case ssData: read_str.push_back(ch);
 		                break;
 		   case ssTerm: read_str.push_back('.');
@@ -302,6 +312,22 @@ int RDSconnection::process()
 void RDSconnection::process_msg()
 {
 
+  read_str = "";
+}
+
+void RDSconnection::process_event_msg()
+{
+  string num_str;
+  string evnt_str;
+  bool is_num_str = true;
+  for (i=0; i<read_str.size(); i++){
+    char ch = read_str[i];
+    if (ch == ':') is_num_str = false;
+    else {
+      if (is_num_str) num_str += ch; else evnt_str += ch;
+    }
+  }
+  
 }
 
 };

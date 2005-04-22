@@ -11,31 +11,34 @@
       <keyword>Code</keyword>
     </keywords>
     <ignoreparts>
-      <part>Dateibaum (KDevelop)</part>
-      <part>Unterstützung für Subversion (KDevelop)</part>
-      <part>Unterstützung für Perforce (KDevelop)</part>
-      <part>Klassenansicht (KDevelop)</part>
+      <part>UnterstÃ¼tzung fÃ¼r ClearCase (KDevelop)</part>
       <part>KDevcopyto</part>
-      <part>Lesezeichen-Unterstützung (KDevelop)</part>
-      <part>Unterstützung für CTags (KDevelop)</part>
-      <part>VisualBoy Advance (KDevelop)</part>
-      <part>Unterstützung für ClearCase (KDevelop)</part>
-      <part>Unterstützung für Doxygen (KDevelop)</part>
-      <part>Schnellöffner-Komponente (KDevelop)</part>
-      <part>Unterstützung für Paketerstellung (KDevelop)</part>
-      <part>Debugger (KDevelop)</part>
+      <part>Dateibaum (KDevelop)</part>
       <part>Dateigruppen-Komponente (KDevelop)</part>
-      <part>Unterstützung für CVSService (KDevelop)</part>
+      <part>Debugger (KDevelop)</part>
+      <part>Klassenansicht (KDevelop)</part>
+      <part>UnterstÃ¼tzung fÃ¼r Perforce (KDevelop)</part>
+      <part>UnterstÃ¼tzung fÃ¼r CVSService (KDevelop)</part>
+      <part>VisualBoy Advance (KDevelop)</part>
     </ignoreparts>
+    <projectdirectory>.</projectdirectory>
+    <absoluteprojectpath>false</absoluteprojectpath>
+    <description></description>
+    <secondaryLanguages/>
   </general>
   <kdevautoproject>
     <general>
       <activetarget>src/rdsquery</activetarget>
-      <useconfiguration>debug</useconfiguration>
+      <useconfiguration>default</useconfiguration>
     </general>
     <run>
       <mainprogram>src/rdsquery</mainprogram>
       <terminal>true</terminal>
+      <directoryradio>executable</directoryradio>
+      <customdirectory>/</customdirectory>
+      <programargs></programargs>
+      <autocompile>true</autocompile>
+      <envvars/>
     </run>
     <configurations>
       <optimized>
@@ -53,7 +56,21 @@
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
       </debug>
+      <default>
+        <envvars/>
+      </default>
     </configurations>
+    <make>
+      <envvars>
+        <envvar value="1" name="WANT_AUTOCONF_2_5" />
+        <envvar value="1" name="WANT_AUTOMAKE_1_6" />
+      </envvars>
+      <abortonerror>false</abortonerror>
+      <numberofjobs>1</numberofjobs>
+      <dontact>false</dontact>
+      <makebin></makebin>
+      <prio>0</prio>
+    </make>
   </kdevautoproject>
   <kdevdoctreeview>
     <ignoretocs>
@@ -130,4 +147,25 @@
     <VERSION>0.1</VERSION>
     <dest>/home/hans/develop/rds_svn/trunk/rdsquery</dest>
   </substmap>
+  <cppsupportpart>
+    <filetemplates>
+      <interfacesuffix>.h</interfacesuffix>
+      <implementationsuffix>.cpp</implementationsuffix>
+    </filetemplates>
+  </cppsupportpart>
+  <kdevcppsupport>
+    <codecompletion>
+      <includeGlobalFunctions>true</includeGlobalFunctions>
+      <includeTypes>true</includeTypes>
+      <includeEnums>true</includeEnums>
+      <includeTypedefs>false</includeTypedefs>
+      <automaticCodeCompletion>true</automaticCodeCompletion>
+      <automaticArgumentsHint>true</automaticArgumentsHint>
+      <automaticHeaderCompletion>true</automaticHeaderCompletion>
+      <codeCompletionDelay>250</codeCompletionDelay>
+      <argumentsHintDelay>400</argumentsHintDelay>
+      <headerCompletionDelay>250</headerCompletionDelay>
+    </codecompletion>
+    <references/>
+  </kdevcppsupport>
 </kdevelop>
