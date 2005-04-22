@@ -79,6 +79,7 @@ int rds_close_connection(RDSConnectionHandle hnd)
   represents an RDS input source that is used by rdsd. Each line starts with a number,
   followed by a colon (':'). This is the source number which you need to query data
   from that source. The rest of the line is a description of the source.
+  The lines are separated by LF characters. The whole string is zero-terminated.
   \param hnd A valid handle returned by rds_open_connection().
   \param buf Pointer to a buffer that receives the source description strings. The buffer
              should be large enough for several strings (4 kilobytes might be a safe value).
