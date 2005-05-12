@@ -20,6 +20,9 @@
 #ifndef STDRDSDCOMMANDLIST_H
 #define STDRDSDCOMMANDLIST_H
 
+#include <string>
+#include <map>
+
 enum RdsdCommandStatus {RCS_VALID,RCS_WAITING,RCS_REQUEST_NEEDED};
 
 namespace std {
@@ -34,7 +37,7 @@ information about a command sent to rdsd.
 class RdsdCommand{
 public:
   //! The constructor
-  RdsdCommand();
+  RdsdCommand() : status=RCS_REQUEST_NEEDED; {};
   //! The destructor
   ~RdsdCommand();
   //! Get the current status of the command
@@ -58,8 +61,10 @@ public:
   RdsdCommandList();
   //! The destructor
   ~RdsdCommandList();
+  //! Find information about a command string
+  RdsdCommand* Find(const string& CmdStr);
 private:
-  
+  map<const string&,RdsdCommand*> CmdMap;
 
 };
 

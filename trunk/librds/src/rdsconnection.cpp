@@ -320,7 +320,7 @@ void RDSconnection::process_event_msg()
   string num_str;
   string evnt_str;
   bool is_num_str = true;
-  for (i=0; i<read_str.size(); i++){
+  for (unsigned int i=0; i<read_str.size(); i++){
     char ch = read_str[i];
     if (ch == ':') is_num_str = false;
     else {

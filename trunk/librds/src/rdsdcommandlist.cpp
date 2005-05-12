@@ -30,5 +30,11 @@ RdsdCommandList::~RdsdCommandList()
 {
 }
 
+RdsdCommand* RdsdCommandList::Find(const string& CmdStr)
+{
+  map<const string&,RdsdCommand*>::iterator it = CmdMap.find(CmdStr);
+  if (it) return *it; else return 0;
+}
+
 
 };
