@@ -65,18 +65,19 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     int b1 = Buf->at(i+1);
     int b2 = Buf->at(i+2);
     i+=3;
-    if (! is_valid_block(b0)) continue;
-    int blocknum = (b0 >> 5) & 0x03;
+    if (! is_valid_block(b2)) continue;
+    int blocknum = b2 & 0x03; // What's the differnce between "Received Offset"
+                              // and "Offset Name" in V4L2 spec ???
     if (blocknum == last_block_num) continue;
     last_block_num = blocknum;
     if (blocknum == next_expected_block){
       switch (blocknum){
-        case 0: set_pi_code((b1 << 8) | b2); 
+        case 0: set_pi_code((b1 << 8) | b0); 
 	        break;
 	case 1: group_type = (RDSGroupType)(b1 >> 3);
 		set_rds_flag(RDS_FLAG_IS_TP,(b1 & 0x04));
-		set_pty_code(((b1 << 3) & 0x18) | ((b2 >> 5) & 0x07));
-		block1_lower5 = (b2 & 0x1F);
+		set_pty_code(((b1 << 3) & 0x18) | ((b0 >> 5) & 0x07));
+		block1_lower5 = (b0 & 0x1F);
 		switch (group_type){
 	          case GROUP_0A:
 		  case GROUP_0B:  set_rds_flag(RDS_FLAG_IS_TA,(block1_lower5 & 0x10));
@@ -96,14 +97,14 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 		  case GROUP_0B:  
 		                  break;
 		  case GROUP_2A:  index = (block1_lower5 & 0x0F) << 2;
-		                  set_radiotext(index,b1,b2);
+		                  set_radiotext(index,b1,b0);
 		                  break;
-		  case GROUP_2B:  set_pi_code((b1 << 8) | b2);
+		  case GROUP_2B:  set_pi_code((b1 << 8) | b0);
 		                  break;
-		  case GROUP_4A:  jul_date = ((block1_lower5 & 0x03) << 15) | (b1 << 7) | (b2 >> 1);
-		                  utc_hour = (b2 & 0x01) << 4;
+		  case GROUP_4A:  jul_date = ((block1_lower5 & 0x03) << 15) | (b1 << 7) | (b0 >> 1);
+		                  utc_hour = (b0 & 0x01) << 4;
 		                  break;
-		  case GROUP_8A:  tmc_event = ((b1 & 0x07) << 8) | b2;
+		  case GROUP_8A:  tmc_event = ((b1 & 0x07) << 8) | b0;
 		                  break;
 		  default: ;
 				  
@@ -112,25 +113,25 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 	case 3: switch (group_type){
 	          case GROUP_0A:
 		  case GROUP_0B:  switch (block1_lower5 & 0x03){
-				    case 0: set_prog_name(0,b1,b2);
+				    case 0: set_prog_name(0,b1,b0);
 					    set_rds_flag(RDS_FLAG_IS_DYNAMIC_PTY,(block1_lower5 & 0x04));
 				            break;
-				    case 1: set_prog_name(2,b1,b2);
+				    case 1: set_prog_name(2,b1,b0);
 					    set_rds_flag(RDS_FLAG_IS_COMPRESSED,(block1_lower5 & 0x04));
 				            break;
-				    case 2: set_prog_name(4,b1,b2);
+				    case 2: set_prog_name(4,b1,b0);
 					    set_rds_flag(RDS_FLAG_IS_ARTIFICIAL_HEAD,(block1_lower5 & 0x04));
 				            break;
-				    case 3: set_prog_name(6,b1,b2);
+				    case 3: set_prog_name(6,b1,b0);
 					    set_rds_flag(RDS_FLAG_IS_STEREO,(block1_lower5 & 0x04));
 				            break;    
 				  }
 		                  break;
 		  case GROUP_2A:  index = (block1_lower5 & 0x0F) << 2;
-		                  set_radiotext(index+2,b1,b2);
+		                  set_radiotext(index+2,b1,b0);
 		                  break;
 		  case GROUP_2B:  index = (block1_lower5 & 0x0F) << 1;
-		                  set_radiotext(index,b1,b2);
+		                  set_radiotext(index,b1,b0);
 		                  break;
 		  case GROUP_4A:  utc_hour |= ((b1 & 0xF0) >> 4);
 		                  utc_minute = ((b1 & 0x0F) << 2)|((b2 & 0xC0) >> 6);
@@ -138,7 +139,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 				  if (b2 & 0x20) utc_offset = -utc_offset;
 				  set_datetime_strings();
 		                  break;
-		  case GROUP_8A:  tmc_location = (b1 << 8) | b2;
+		  case GROUP_8A:  tmc_location = (b1 << 8) | b0;
 		                  break;
 		  
 		  default: ;
@@ -207,11 +208,9 @@ int RDSdecoder::GetPTYcode()
   return PTYcode;
 }
 
-bool RDSdecoder::is_valid_block(int b0)
+bool RDSdecoder::is_valid_block(int b2)
 {
-  // This applies to SAA6588 data only.
-  // For other decoders, we'll have to think of something new...
-  if ((b0 & 0x03)==3){
+  if ((b2 & 0x80)!=0){
     //TODO: Add some error statistics here...
     return false;
   }

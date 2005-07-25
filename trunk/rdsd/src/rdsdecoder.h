@@ -96,7 +96,7 @@ private:
   int tmc_event;
   int tmc_location;
   rds_flags_t rds_flags;
-  bool is_valid_block(int b0);
+  bool is_valid_block(int b2);
   void set_event(rds_events_t evnt);
   void set_rds_flag(rds_flags_t flag, bool new_state);
   void set_pi_code(int new_code);
