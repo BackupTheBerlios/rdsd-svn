@@ -134,9 +134,9 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 		                  set_radiotext(index,b1,b0);
 		                  break;
 		  case GROUP_4A:  utc_hour |= ((b1 & 0xF0) >> 4);
-		                  utc_minute = ((b1 & 0x0F) << 2)|((b2 & 0xC0) >> 6);
-				  utc_offset = (b2 & 0x1F);
-				  if (b2 & 0x20) utc_offset = -utc_offset;
+		                  utc_minute = ((b1 & 0x0F) << 2)|((b0 & 0xC0) >> 6);
+				  utc_offset = (b0 & 0x1F);
+				  if (b0 & 0x20) utc_offset = -utc_offset;
 				  set_datetime_strings();
 		                  break;
 		  case GROUP_8A:  tmc_location = (b1 << 8) | b0;
@@ -272,7 +272,7 @@ void RDSdecoder::set_last_radiotext()
     radio_text_buf[i] = '\r';
     ++i;
   }
-  cout << temp << endl;
+  //cout << temp << endl;
   if (temp != last_radio_text){
     last_radio_text = temp;
     set_event(RDS_EVENT_LAST_RADIOTEXT);
