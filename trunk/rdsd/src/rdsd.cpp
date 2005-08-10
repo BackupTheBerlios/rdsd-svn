@@ -59,22 +59,12 @@ static int check_pid_file(string pid_file_name)
   }
   if ((fd = open(pid_file_name.c_str(),O_RDWR | O_CREAT,
                 S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH))<0) return -1;
-  struct flock mylock;
-  mylock.l_type   = F_WRLCK;
-  mylock.l_start  = 0;
-  mylock.l_whence = SEEK_SET;
-  mylock.l_len    = 0;
-  if (fcntl(fd,F_SETLK,&mylock) < 0) return -2;
-  if (ftruncate(fd,0) < 0) return -3;
+
   char pidbuf[10];
   sprintf(pidbuf,"%d\n",getpid());
   int len = strlen(pidbuf);
   if (write(fd,pidbuf,len) != len) return -4;
   
-  int flags;
-  if ((flags = fcntl(fd,F_GETFD,0)) < 0) return -5;
-  flags |= FD_CLOEXEC;
-  if (fcntl(fd,F_GETFD,0) < 0) return -6;
   close(fd);
   return 0;
 }
@@ -156,23 +146,26 @@ int main(int argc, char* argv[])
   handler.log.SetConsoleLog(true);
   handler.log.SetFileLog(false);
   handler.log.SetLogLevel(LL_DEBUG);
-    
-  int ret = handler.InitConf(conf_file_name);
+  
+  int ret;
+  
+  ret = handler.InitConf(conf_file_name);
   if (ret){
     handler.log.LogMsg(LL_EMERG,"Cannot initialize RDS handler.");
     clean_exit(1);
   }
   else handler.log.LogMsg(LL_DEBUG,"RDS handler initialized.");
   
+  
   ret = check_pid_file(handler.GetPidFilename());
   running_pid = (ret>0) ? ret : -1;
 
-  if (ret<0){
+  if ((running_pid>0)&&(!do_kill_rdsd)){
     handler.log.LogMsg(LL_EMERG,"Cannot initialize PID file (already running ?).");
     clean_exit(1);   
   }
     
-  if ((do_reload_rdsd || do_kill_rdsd) && (running_pid<0)){
+  if ((do_reload_rdsd || do_kill_rdsd) && (running_pid<=0)){
     handler.log.LogMsg(LL_ERR,"Cannot find PID (no rdsd running ?).");
     clean_exit(1);
   }
@@ -187,11 +180,15 @@ int main(int argc, char* argv[])
   }
   
   if (do_kill_rdsd){
+    ostringstream msg;
+    msg << "Killing rdsd (PID=" << running_pid << ") ";
     if (kill(running_pid,SIGINT)<0){
-      handler.log.LogMsg(LL_ERR,"Cannot send SIGINT (stale rdsd.pid file ?).");
+      msg << "failed (stale rdsd.pid file ?).";
+      handler.log.LogMsg(LL_ERR,msg.str());
       clean_exit(1);
     }
-    handler.log.LogMsg(LL_INFO,"SIGINT sent to rdsd.");
+    msg << "...done.";
+    handler.log.LogMsg(LL_INFO,msg.str());
     clean_exit(0);
   }
     

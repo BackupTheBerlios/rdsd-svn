@@ -292,7 +292,12 @@ void RDSdecoder::set_datetime_strings()
   ostringstream utcss;
 
   utcss << Y << "/" << D << "/" << M << " ";
-  utcss << utc_hour << ":" << utc_minute << ":00";
+  utcss.width(2); utcss.fill('0');
+  utcss << utc_hour; 
+  utcss << ":";
+  utcss.width(2); utcss.fill('0');
+  utcss << utc_minute;
+  utcss << ":00";
 
   utc_datetime_str = utcss.str();
 
@@ -336,7 +341,12 @@ void RDSdecoder::set_datetime_strings()
   ostringstream locss;
   
   locss << Y << "/" << D << "/" << M << " ";
-  locss << loc_hour << ":" << loc_min << ":00";
+  locss.width(2); locss.fill('0');
+  locss << loc_hour;
+  locss << ":";
+  locss.width(2); locss.fill('0');
+  locss << loc_min;
+  locss << ":00";
 
   local_datetime_str = locss.str();
 
