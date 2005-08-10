@@ -101,7 +101,11 @@ int RDSconnection::Close()
 */
 int RDSconnection::EnumSources(char* buf, int bufsize)
 {
+  int ret = send_command(-1,"esrc");
+  if (ret) return ret;
 
+  //Wait for response...
+  
   return 0;
 }
 

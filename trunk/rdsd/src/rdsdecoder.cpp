@@ -340,7 +340,7 @@ void RDSdecoder::set_datetime_strings()
 
   local_datetime_str = locss.str();
 
-  set_rds_flag(RDS_EVENT_DATETIME,true);
+  set_event(RDS_EVENT_DATETIME);
 }
 
 
