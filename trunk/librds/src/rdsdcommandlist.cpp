@@ -30,10 +30,31 @@ RdsdCommandList::~RdsdCommandList()
 {
 }
 
+void RdsdCommandList::Clear()
+{
+  map<const string&,RdsdCommand*>::iterator it;
+  for (it=CmdMap.begin(); it != CmdMap.end(); it++){
+    if (it){
+      if (*it) delete (*it);
+    }
+  }
+  CmdMap.clear();
+}
+
 RdsdCommand* RdsdCommandList::Find(const string& CmdStr)
 {
   map<const string&,RdsdCommand*>::iterator it = CmdMap.find(CmdStr);
   if (it) return *it; else return 0;
+}
+
+RdsdCommand* RdsdCommandList::FindOrAdd(const string& CmdStr)
+{
+  RdsdCommand* result = Find(CmdStr);
+  if (! result){
+    result = new RdsdCommand;
+    CmdMap[CmdStr] = result;
+  }
+  return result;
 }
 
 

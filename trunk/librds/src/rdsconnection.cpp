@@ -109,7 +109,7 @@ int RDSconnection::EnumSources(char* buf, int bufsize)
   return 0;
 }
 
-int RDSconnection::SetEventMask(int src, rds_events_t evnt_mask)
+int RDSconnection::SetEventMask(unsigned int src, rds_events_t evnt_mask)
 {
   ostringstream oss;
   oss << "sevnt " << evnt_mask; 
@@ -121,7 +121,7 @@ int RDSconnection::SetEventMask(int src, rds_events_t evnt_mask)
   return RDS_OK;
 }
 
-int RDSconnection::GetEventMask(int src, rds_events_t &evnt_mask)
+int RDSconnection::GetEventMask(unsigned int src, rds_events_t &evnt_mask)
 {
   int ret = send_command(src,"gevnt");
   if (ret) return ret;
@@ -131,55 +131,69 @@ int RDSconnection::GetEventMask(int src, rds_events_t &evnt_mask)
   return 0;
 }
 
-int RDSconnection::GetEvent(int src, rds_events_t &events)
+/*!
+  GetEvent() is usually called from the main loop of the user application. It will process
+  incoming data and will return all event flags that were set since the last call.
+  \param src The source for which GetEvent() is called.
+  \param events A variable that will receive the events that occured since the last call.
+  \return Returns RDS_OK (0) on success. If the function fails, a non-zero error code is returned.
+*/
+int RDSconnection::GetEvent(unsigned int src, rds_events_t &events)
+{
+  events = 0;
+  int ret = process();
+  if (ret != RDS_OK) return ret;
+  if (src<rcvd_events.size()){
+    events=rcvd_events[src];
+    rcvd_events[src]=0;
+    return RDS_OK;
+  }
+  return RDS_ILL_SRC_NUM;
+}
+
+int RDSconnection::GetFlags(unsigned int src, rds_flags_t &flags)
 {
 
   return 0;
 }
 
-int RDSconnection::GetFlags(int src, rds_flags_t &flags)
+int RDSconnection::GetPTYcode(unsigned int src, int &pty_code)
 {
 
   return 0;
 }
 
-int RDSconnection::GetPTYcode(int src, int &pty_code)
+int RDSconnection::GetPIcode(unsigned int src, int &pi_code)
 {
 
   return 0;
 }
 
-int RDSconnection::GetPIcode(int src, int &pi_code)
+int RDSconnection::GetProgramName(unsigned int src, char* buf)
 {
 
   return 0;
 }
 
-int RDSconnection::GetProgramName(int src, char* buf)
+int RDSconnection::GetRadiotext(unsigned int src, char* buf)
 {
 
   return 0;
 }
 
-int RDSconnection::GetRadiotext(int src, char* buf)
+int RDSconnection::GetLastRadiotext(unsigned int src, char* buf)
 {
 
   return 0;
 }
 
-int RDSconnection::GetLastRadiotext(int src, char* buf)
+int RDSconnection::GetUTCDateTimeString(unsigned int src, char* buf)
 {
 
   return 0;
 }
 
-int RDSconnection::GetUTCDateTimeString(int src, char* buf)
-{
-
-  return 0;
-}
-
-int RDSconnection::GetLocalDateTimeString(int src, char* buf)
+int RDSconnection::GetLocalDateTimeString(unsigned int src, char* buf)
 {
 
   return 0;
@@ -267,7 +281,7 @@ int RDSconnection::process()
   if (sock_fd<0) return RDS_SOCKET_NOT_OPEN;
   int rd_cnt = read(sock_fd,&read_buf[0],read_buf.size());
   if (rd_cnt<0) return RDS_READ_ERROR;
-  enum ScanState {ssEOL=0,ssData,ssComment,ssTerm,ssEvent};
+  enum ScanState {ssEOL=0,ssData,ssTerm,ssEvent};
   ScanState state = (ScanState)last_scan_state;
   int i=0;
   while (i<rd_cnt){
@@ -290,9 +304,6 @@ int RDSconnection::process()
       case '.' : if (state == ssEOL) state=ssTerm;
                  else read_str.push_back(ch);
                  break;
-      case '#' : if (state == ssEOL) state=ssComment;
-                 else read_str.push_back(ch);
-		 break;
       default:   switch (state){
                    case ssEOL:  read_str.push_back(ch);
 		                state = ssData;
@@ -304,7 +315,6 @@ int RDSconnection::process()
 		                read_str.push_back(ch);
 		                state = ssData;
 			        break;
-		   case ssComment: ;
                  }
     }
     last_scan_state = state;
@@ -313,25 +323,60 @@ int RDSconnection::process()
   return RDS_OK;
 }
 
-void RDSconnection::process_msg()
+
+bool RDSconnection::process_msg()
 {
 
   read_str = "";
+  return true;
 }
 
-void RDSconnection::process_event_msg()
+bool RDSconnection::StringToEvnt(const string &s, rds_events_t &evnt)
+{
+  istringstream myStream(s);
+  if (myStream >> evnt) return true;
+  return false;
+}
+
+bool RDSconnection::StringToSrcNum(const string &s, unsigned int &src_num)
+{
+  istringstream myStream(s);
+  if (myStream >> src_num){
+    if ((src_num>=0)&&(src_num<=MAX_SRC_NUM)) return true;
+  }
+  return false;
+}
+
+bool RDSconnection::process_event_msg()
 {
   string num_str;
   string evnt_str;
   bool is_num_str = true;
+  bool is_error = false;
   for (unsigned int i=0; i<read_str.size(); i++){
     char ch = read_str[i];
     if (ch == ':') is_num_str = false;
     else {
-      if (is_num_str) num_str += ch; else evnt_str += ch;
+      if ((ch>='0')&&(ch<='9')){
+        if (is_num_str) num_str += ch; else evnt_str += ch;
+      }
+      else is_error=true;
     }
   }
-  
+  if (is_error) return false;
+  unsigned int src;
+  if (! StringToSrcNum(num_str,src)) return false;
+  rds_events_t event_code;
+  if (! StringToEvnt(evnt_str,event_code)) return false;
+  if (rcvd_events.size() <= src){
+    unsigned int i=rcvd_events.size();
+    rcvd_events.resize(src+1);
+    while (i<(src+1)) rcvd_events[i++] = 0;
+  }
+  rcvd_events[src] |= event_code;
+  // request values mentioned in event_code here...
+
+  return true;
 }
 
 };

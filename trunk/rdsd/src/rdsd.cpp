@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
       handler.log.LogMsg(LL_EMERG,"Ooops! Cannot fork()...");
       clean_exit(2);
     } 
-    check_pid_file(handler.GetPidFilename());
+    check_pid_file(handler.GetPidFilename()); //We have a new PID now...
   }
   
   ret = handler.Init();

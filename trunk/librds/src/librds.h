@@ -29,6 +29,8 @@
 */
 typedef void* RDSConnectionHandle;
 
+const unsigned int MAX_SRC_NUM = 255;   //!< Maximum RDS source number
+
 const int CONN_TYPE_TCPIP = 1; //!< Connection uses TCP/IP
 const int CONN_TYPE_UNIX  = 2; //!< Connection uses unix domain socket
 
@@ -52,6 +54,7 @@ enum LibRdsErr {
   RDS_CHMOD_ERROR,           //!< The chmod() system call failed
   RDS_WRITE_ERROR,           //!< The write() system call failed
   RDS_READ_ERROR,            //!< The read() system call failed
+  RDS_ILL_SRC_NUM            //!< An illegal source number was given 
 }; 
 
 //! Type for a variable that stores RDS flags.

@@ -21,6 +21,7 @@
 #define STDRDSCONNECTION_H
 
 #include "librds.h"
+#include "rdsdcommandlist.h"
 #include <string>
 #include <vector>
 
@@ -44,38 +45,42 @@ public:
   //! Get the list of sources known by rdsd.
   int EnumSources(char* buf, int bufsize);
   //! Set the evnt mask for a source.
-  int SetEventMask(int src, rds_events_t evnt_mask);
+  int SetEventMask(unsigned int src, rds_events_t evnt_mask);
   //! Get the active event mask for a source.
-  int GetEventMask(int src, rds_events_t &evnt_mask);
+  int GetEventMask(unsigned int src, rds_events_t &evnt_mask);
   //! Get the events that occured since the last call.
-  int GetEvent(int src, rds_events_t &events);
+  int GetEvent(unsigned int src, rds_events_t &events);
   //! Get some RDS flags from a source.
-  int GetFlags(int src, rds_flags_t &flags);
+  int GetFlags(unsigned int src, rds_flags_t &flags);
   //! Get the program type code.
-  int GetPTYcode(int src, int &pty_code);
+  int GetPTYcode(unsigned int src, int &pty_code);
   //! Get the program identification code.
-  int GetPIcode(int src, int &pi_code);
+  int GetPIcode(unsigned int src, int &pi_code);
   //! Get the program name.
-  int GetProgramName(int src, char* buf);
+  int GetProgramName(unsigned int src, char* buf);
   //! Get the current radio text buffer.
-  int GetRadiotext(int src, char* buf);
+  int GetRadiotext(unsigned int src, char* buf);
   //! Get the last complete radio text string.
-  int GetLastRadiotext(int src, char* buf);
+  int GetLastRadiotext(unsigned int src, char* buf);
   //! Get UTC date and time as a string.
-  int GetUTCDateTimeString(int src, char* buf);
+  int GetUTCDateTimeString(unsigned int src, char* buf);
   //! Get local date and time as a string.
-  int GetLocalDateTimeString(int src, char* buf);
+  int GetLocalDateTimeString(unsigned int src, char* buf);
 private:
+  RdsdCommandList CmdList;
   int sock_fd;
   vector<char> read_buf;
   string read_str;
   int last_scan_state;
+  vector<rds_events_t> rcvd_events;
   int open_tcpip(string path, int port);
   int open_unix(string serv_path, string my_path);
   int send_command(int src, string cmd);
   int process();
-  void process_msg();
-  void process_event_msg();
+  bool StringToEvnt(const string &s, rds_events_t &evnt);
+  bool StringToSrcNum(const string &s, unsigned int &src_num);
+  bool process_msg();
+  bool process_event_msg();
 };
 
 };

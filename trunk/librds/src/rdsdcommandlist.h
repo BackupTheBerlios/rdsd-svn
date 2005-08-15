@@ -37,7 +37,7 @@ information about a command sent to rdsd.
 class RdsdCommand{
 public:
   //! The constructor
-  RdsdCommand() : status=RCS_REQUEST_NEEDED; {};
+  RdsdCommand() { status=RCS_REQUEST_NEEDED; };
   //! The destructor
   ~RdsdCommand();
   //! Get the current status of the command
@@ -61,10 +61,14 @@ public:
   RdsdCommandList();
   //! The destructor
   ~RdsdCommandList();
+  //! Clear the list, free allocated ressources
+  void Clear();
   //! Find information about a command string
   RdsdCommand* Find(const string& CmdStr);
+  //! Find information about a command string. If no object is found, add a new one.
+  RdsdCommand* FindOrAdd(const string& CmdStr);
 private:
-  map<const string&,RdsdCommand*> CmdMap;
+  map<string,RdsdCommand*> CmdMap;
 
 };
 
