@@ -271,8 +271,16 @@ int RDSconnection::send_command(int src, string cmd)
   ostringstream oss;
   if (src>=0) oss << src << ":";
   oss << cmd << endl;
-  int n = oss.str().size();
-  if (write(sock_fd,oss.str().c_str(),n)!=n) return RDS_WRITE_ERROR;
+
+  RdsdCommand* RdsdCmd = CmdList.FindOrAdd(cmd);
+  if (! RdsdCmd) return RDS_CMD_LIST_ERROR; // Should never happen...
+
+  if (RdsdCmd->GetStatus() != RCS_WAITING){
+    int n = oss.str().size();
+    if (write(sock_fd,oss.str().c_str(),n)!=n) return RDS_WRITE_ERROR;
+    RdsdCmd->SetStatus(RCS_WAITING);
+  }
+  
   return RDS_OK;
 }
 
@@ -326,7 +334,22 @@ int RDSconnection::process()
 
 bool RDSconnection::process_msg()
 {
-
+  string cmd_str;
+  string data_str;
+  enum ScanState {ssSrcNum,ssCmd,ssData,ssErr};
+  ScanState state = ssSrcNum;
+  unsigned int i=0;
+  while ((i<read_str.size())&&(state != ssErr)){
+    char ch = read_str[i];
+    switch (state){
+      case ssSrcNum: if ((ch>='0')&&(ch<='9')) cmd_str.push_back(ch);
+                     else if ((ch=':')&&(cmd_str.size()>0)){
+                       cmd_str.push_back(ch);
+		       state=ssCmd;
+		     }
+    }
+    ++i;
+  } 
   read_str = "";
   return true;
 }
@@ -374,7 +397,16 @@ bool RDSconnection::process_event_msg()
     while (i<(src+1)) rcvd_events[i++] = 0;
   }
   rcvd_events[src] |= event_code;
-  // request values mentioned in event_code here...
+  if (event_code & RDS_EVENT_FLAGS)          send_command(src,"rflags");
+  if (event_code & RDS_EVENT_PI_CODE)        send_command(src,"picode");
+  if (event_code & RDS_EVENT_PTY_CODE)       send_command(src,"ptype");
+  if (event_code & RDS_EVENT_PROGRAMNAME)    send_command(src,"pname");
+  if (event_code & RDS_EVENT_DATETIME){
+                                             send_command(src,"utcdt");
+                                             send_command(src,"locdt");
+  }
+  if (event_code & RDS_EVENT_RADIOTEXT)      send_command(src,"rtxt");
+  if (event_code & RDS_EVENT_LAST_RADIOTEXT) send_command(src,"lrtxt");
 
   return true;
 }

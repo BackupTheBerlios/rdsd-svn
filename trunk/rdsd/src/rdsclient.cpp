@@ -140,6 +140,14 @@ int RDSclient::ExecCmd(RDSsourceList* psrclist)
     msg << src_num << ":gevnt" << endl;
     if (src) msg << get_event_mask(src_num) << endl;
   }
+  else if (cmd_str=="picode"){
+    msg << src_num << ":picode" << endl;
+    if (src) msg << src->Data.GetPIcode() << endl;
+  }
+  else if (cmd_str=="ptype"){
+    msg << src_num << ":ptype" << endl;
+    if (src) msg << src->Data.GetPTYcode() << endl;
+  }
   else if (cmd_str=="rtxt"){
     msg << src_num << ":rtxt" << endl;
     if (src) msg << src->Data.GetRadioText() << endl;

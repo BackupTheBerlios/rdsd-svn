@@ -54,7 +54,8 @@ enum LibRdsErr {
   RDS_CHMOD_ERROR,           //!< The chmod() system call failed
   RDS_WRITE_ERROR,           //!< The write() system call failed
   RDS_READ_ERROR,            //!< The read() system call failed
-  RDS_ILL_SRC_NUM            //!< An illegal source number was given 
+  RDS_ILL_SRC_NUM,           //!< An illegal source number was given
+  RDS_CMD_LIST_ERROR         //!< An internal error in the command list. Must never happen!
 }; 
 
 //! Type for a variable that stores RDS flags.
