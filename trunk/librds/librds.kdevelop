@@ -2,7 +2,7 @@
 <kdevelop>
   <general>
     <author>Hans J. Koch</author>
-    <email>hans-juergen@hjk-az.de</email>
+    <email>koch@hjk-az.de</email>
     <version>0.1</version>
     <projectmanagement>KDevAutoProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
@@ -11,13 +11,9 @@
       <keyword>Code</keyword>
     </keywords>
     <ignoreparts>
-      <part>Unterstützung für ClearCase (KDevelop)</part>
-      <part>KDevcopyto</part>
       <part>Dateibaum (KDevelop)</part>
       <part>Dateigruppen-Komponente (KDevelop)</part>
       <part>Debugger (KDevelop)</part>
-      <part>Unterstützung für Perforce (KDevelop)</part>
-      <part>Unterstützung für CVSService (KDevelop)</part>
       <part>VisualBoy Advance (KDevelop)</part>
     </ignoreparts>
     <projectdirectory>.</projectdirectory>

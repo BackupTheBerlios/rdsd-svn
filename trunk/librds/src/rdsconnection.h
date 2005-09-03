@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   hans-juergen@hjk-az.de                                                *
+ *   koch@hjk-az.de                                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -43,7 +43,7 @@ public:
   //! Close the connection.
   int Close();
   //! Get the list of sources known by rdsd.
-  int EnumSources(char* buf, int bufsize);
+  int EnumSources(char* buf, size_t bufsize);
   //! Set the evnt mask for a source.
   int SetEventMask(unsigned int src, rds_events_t evnt_mask);
   //! Get the active event mask for a source.
@@ -75,9 +75,12 @@ private:
   vector<rds_events_t> rcvd_events;
   int open_tcpip(string path, int port);
   int open_unix(string serv_path, string my_path);
-  int send_command(int src, string cmd);
+  int send_command(int src, const string& cmd);
+  int wait_for_data(int src, const string& cmd, string& data);
   int process();
   bool StringToEvnt(const string &s, rds_events_t &evnt);
+  bool StringToFlags(const string &s, rds_flags_t &flags);
+  bool StringToInt(const string &s, int &result);
   bool StringToSrcNum(const string &s, unsigned int &src_num);
   bool process_msg();
   bool process_event_msg();

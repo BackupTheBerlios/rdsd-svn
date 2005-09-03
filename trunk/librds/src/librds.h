@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   hans-juergen@hjk-az.de                                                *
+ *   koch@hjk-az.de                                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -55,7 +55,9 @@ enum LibRdsErr {
   RDS_WRITE_ERROR,           //!< The write() system call failed
   RDS_READ_ERROR,            //!< The read() system call failed
   RDS_ILL_SRC_NUM,           //!< An illegal source number was given
-  RDS_CMD_LIST_ERROR         //!< An internal error in the command list. Must never happen!
+  RDS_CMD_LIST_ERROR,        //!< An internal error in the command list. Must never happen!
+  RDS_REQUEST_TIMEOUT,       //!< There was no response from rdsd within the time limit
+  RDS_UNEXPECTED_RESPONSE    //!< The response from rdsd is not what was expected
 }; 
 
 //! Type for a variable that stores RDS flags.

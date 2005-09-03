@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   hans-juergen@hjk-az.de                                                *
+ *   koch@hjk-az.de                                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -99,36 +99,36 @@ int RDSconnection::Close()
   \param bufsize Size of the buffer pointed to by buf, in bytes.
   \return Returns RDS_OK (0) on success. If the function fails, a non-zero error code is returned.
 */
-int RDSconnection::EnumSources(char* buf, int bufsize)
+int RDSconnection::EnumSources(char* buf, size_t bufsize)
 {
-  int ret = send_command(-1,"esrc");
+  string data;
+  int ret = wait_for_data(-1,"esrc",data);
   if (ret) return ret;
-
-  //Wait for response...
-  
-  return 0;
+  size_t len = data.size();
+  if (len > bufsize-1) len = bufsize-1;
+  memcpy(buf,data.c_str(),len);
+  buf[len] = 0;
+  return RDS_OK;
 }
 
 int RDSconnection::SetEventMask(unsigned int src, rds_events_t evnt_mask)
 {
-  ostringstream oss;
-  oss << "sevnt " << evnt_mask; 
-  int ret = send_command(src,oss.str());
+  int ret = send_command(src,"sevnt");
   if (ret) return ret;
-
-  //Wait for acknowledge...
-  
+  string data;
+  ret = wait_for_data(src,"sevnt",data);
+  if (ret) return ret;
+  if (data != "OK") return RDS_UNEXPECTED_RESPONSE;
   return RDS_OK;
 }
 
 int RDSconnection::GetEventMask(unsigned int src, rds_events_t &evnt_mask)
 {
-  int ret = send_command(src,"gevnt");
+  string data;
+  int ret = wait_for_data(src,"gevnt",data);
   if (ret) return ret;
-
-  //Wait for response...
-  
-  return 0;
+  if (! StringToEvnt(data,evnt_mask)) return RDS_UNEXPECTED_RESPONSE;
+  return RDS_OK;
 }
 
 /*!
@@ -153,50 +153,89 @@ int RDSconnection::GetEvent(unsigned int src, rds_events_t &events)
 
 int RDSconnection::GetFlags(unsigned int src, rds_flags_t &flags)
 {
-
-  return 0;
+  string data;
+  int ret = wait_for_data(src,"rflags",data);
+  if (ret) return ret;
+  if (! StringToFlags(data,flags)) return RDS_UNEXPECTED_RESPONSE;
+  return RDS_OK;
 }
 
 int RDSconnection::GetPTYcode(unsigned int src, int &pty_code)
 {
-
-  return 0;
+  string data;
+  int ret = wait_for_data(src,"ptype",data);
+  if (ret) return ret;
+  if (! StringToInt(data,pty_code)) return RDS_UNEXPECTED_RESPONSE;
+  return RDS_OK;
 }
 
 int RDSconnection::GetPIcode(unsigned int src, int &pi_code)
 {
-
-  return 0;
+  string data;
+  int ret = wait_for_data(src,"picode",data);
+  if (ret) return ret;
+  if (! StringToInt(data,pi_code)) return RDS_UNEXPECTED_RESPONSE;
+  return RDS_OK;
 }
 
 int RDSconnection::GetProgramName(unsigned int src, char* buf)
 {
-
-  return 0;
+  string data;
+  int ret = wait_for_data(src,"pname",data);
+  if (ret) return ret;
+  size_t len = data.size();
+  if (len > 8) len = 8;
+  memcpy(buf,data.c_str(),len);
+  buf[len] = 0;
+  return RDS_OK;
 }
 
 int RDSconnection::GetRadiotext(unsigned int src, char* buf)
 {
-
-  return 0;
+  string data;
+  int ret = wait_for_data(src,"rtxt",data);
+  if (ret) return ret;
+  size_t len = data.size();
+  if (len > 64) len = 64;
+  memcpy(buf,data.c_str(),len);
+  buf[len] = 0;
+  return RDS_OK;
 }
 
 int RDSconnection::GetLastRadiotext(unsigned int src, char* buf)
 {
-
-  return 0;
+  string data;
+  int ret = wait_for_data(src,"lrtxt",data);
+  if (ret) return ret;
+  size_t len = data.size();
+  if (len > 64) len = 64;
+  memcpy(buf,data.c_str(),len);
+  buf[len] = 0;
+  return RDS_OK;
 }
 
 int RDSconnection::GetUTCDateTimeString(unsigned int src, char* buf)
 {
-
-  return 0;
+  string data;
+  int ret = wait_for_data(src,"utcdt",data);
+  if (ret) return ret;
+  size_t len = data.size();
+  if (len > 255) len = 255;
+  memcpy(buf,data.c_str(),len);
+  buf[len] = 0;
+  return RDS_OK;
 }
 
 int RDSconnection::GetLocalDateTimeString(unsigned int src, char* buf)
 {
-
-  return 0;
+  string data;
+  int ret = wait_for_data(src,"locdt",data);
+  if (ret) return ret;
+  size_t len = data.size();
+  if (len > 255) len = 255;
+  memcpy(buf,data.c_str(),len);
+  buf[len] = 0;
+  return RDS_OK;
 }
 
 // private member functions -------------------------------------
@@ -265,22 +304,44 @@ int RDSconnection::open_unix(string serv_path, string my_path)
   return RDS_OK;
 }
 
-int RDSconnection::send_command(int src, string cmd)
+int RDSconnection::send_command(int src, const string& cmd)
 {
   if (sock_fd<0) return RDS_SOCKET_NOT_OPEN;
   ostringstream oss;
   if (src>=0) oss << src << ":";
-  oss << cmd << endl;
+  oss << cmd;
 
-  RdsdCommand* RdsdCmd = CmdList.FindOrAdd(cmd);
+  RdsdCommand* RdsdCmd = CmdList.FindOrAdd(oss.str());
   if (! RdsdCmd) return RDS_CMD_LIST_ERROR; // Should never happen...
 
   if (RdsdCmd->GetStatus() != RCS_WAITING){
+    oss << endl;
     int n = oss.str().size();
     if (write(sock_fd,oss.str().c_str(),n)!=n) return RDS_WRITE_ERROR;
     RdsdCmd->SetStatus(RCS_WAITING);
   }
   
+  return RDS_OK;
+}
+
+int RDSconnection::wait_for_data(int src, const string& cmd, string& data)
+{
+  ostringstream oss;
+  if (src>=0) oss << src << ":";
+  oss << cmd;
+  RdsdCommand* RdsdCmd = CmdList.FindOrAdd(oss.str());
+  if (! RdsdCmd) return RDS_CMD_LIST_ERROR; // Should never happen...
+  if (RdsdCmd->GetStatus() == RCS_REQUEST_NEEDED) send_command(src,cmd);
+  bool timeout=false;
+  while ((RdsdCmd->GetStatus() != RCS_VALID)&&(!timeout)){
+    int ret = process();
+    if (ret) return ret;
+    
+    //TODO: Add timeout detection here!
+    
+  }
+  if (timeout) return RDS_REQUEST_TIMEOUT;
+  data = RdsdCmd->GetData();
   return RDS_OK;
 }
 
@@ -336,21 +397,40 @@ bool RDSconnection::process_msg()
 {
   string cmd_str;
   string data_str;
-  enum ScanState {ssSrcNum,ssCmd,ssData,ssErr};
+  enum ScanState {ssSrcNum,ssCmd,ssData,ssReady,ssErr};
   ScanState state = ssSrcNum;
   unsigned int i=0;
   while ((i<read_str.size())&&(state != ssErr)){
     char ch = read_str[i];
     switch (state){
-      case ssSrcNum: if ((ch>='0')&&(ch<='9')) cmd_str.push_back(ch);
-                     else if ((ch=':')&&(cmd_str.size()>0)){
-                       cmd_str.push_back(ch);
-		       state=ssCmd;
-		     }
+      case ssSrcNum:  if ((ch>='0')&&(ch<='9')) cmd_str.push_back(ch);
+                      else if (ch==':'){
+		        if (cmd_str.size()>0){
+                          cmd_str.push_back(ch);
+		          state=ssCmd;
+		        }
+		        else state=ssErr;
+		      }
+		      else state=ssErr;
+		      break;
+      case ssCmd:     if ((ch>='a')&&(ch<='z')) cmd_str.push_back(ch);
+                      else if (ch=='\n'){
+		        if (cmd_str.size()>0) state=ssData;
+		        else state=ssErr;
+		      }
+		      break;
+      case ssData:    data_str.push_back(ch);
+		      break;
+      default:        // just to prevent compiler warnings...
+                      break;
     }
     ++i;
   } 
   read_str = "";
+  RdsdCommand* RdsdCmd = CmdList.FindOrAdd(cmd_str);
+  if (! RdsdCmd) return RDS_CMD_LIST_ERROR; // Should never happen...
+  RdsdCmd->SetData(data_str);
+  RdsdCmd->SetStatus(RCS_VALID);
   return true;
 }
 
@@ -358,6 +438,20 @@ bool RDSconnection::StringToEvnt(const string &s, rds_events_t &evnt)
 {
   istringstream myStream(s);
   if (myStream >> evnt) return true;
+  return false;
+}
+
+bool RDSconnection::StringToFlags(const string &s, rds_flags_t &flags)
+{
+  istringstream myStream(s);
+  if (myStream >> flags) return true;
+  return false;
+}
+
+bool RDSconnection::StringToInt(const string &s, int &result)
+{
+  istringstream myStream(s);
+  if (myStream >> result) return true;
   return false;
 }
 

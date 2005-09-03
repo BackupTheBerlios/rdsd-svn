@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   hans-juergen@hjk-az.de                                                *
+ *   koch@hjk-az.de                                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -44,9 +44,13 @@ public:
   RdsdCommandStatus GetStatus(){ return status; };
   //! Set the current status of the command
   void SetStatus(RdsdCommandStatus new_status){ status = new_status; };
+  //! Get stored data
+  const string& GetData(){ return data; }
+  //! Store data string
+  void SetData(const string& new_data){ data = new_data; };
 private:
   RdsdCommandStatus status;
-
+  string data;
 };
 
 /**
