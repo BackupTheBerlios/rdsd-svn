@@ -39,6 +39,10 @@ RDSconnection::RDSconnection()
   sock_fd = -1;
   read_buf.resize(2048);
   last_scan_state = 0;
+  active_debug_level = 0; //debugging off
+  first_debug_line = 0;
+  next_debug_line = 0;
+  max_debug_lines = 100;
 }
 
 /*!
@@ -47,6 +51,40 @@ RDSconnection::RDSconnection()
 RDSconnection::~RDSconnection()
 {
   Close();
+}
+
+/*!
+  Set parameters for library debugging. Calling this function will set the new
+  parameters and clear the buffer.
+  \param debug_level The higher this value is, the more information you will get.
+                     debug_level==0 will turn debugging off.
+  \param max_lines   Maximum number of lines in the internal buffer.
+*/
+int RDSconnection::SetDebugParams(int debug_level, int max_lines)
+{
+  active_debug_level = debug_level;
+  max_debug_lines = max_lines;
+  return RDS_OK;
+}
+
+/*! 
+  Copy the debug messages stored internally to the given buffer. The lines are
+  separated by NEWLINE characters ('\n'), the whole text is zero terminated. No
+  more than buf_size characters will be copied. If buf and/or buf_size is zero,
+  nothing will be copied, but buf_size will receive the number of chars needed
+  to store the current amount of text. If you don't call other librds functions
+  in between, you can allocate a buffer of exactly this size and call  
+  GetDebugTextBuffer() again.
+  \param buf      Pointer to a buffer to receive the text. The user is responsible
+                  for the allocation of this buffer.
+  \param buf_size A variable that contains the size in chars of the buffer pointed
+                  to by buf. If buf is a NULL pointer or buf_size has a zero value,
+		  buf_size will receive the required size for buf.
+*/
+int RDSconnection::GetDebugTextBuffer(char* buf, int& buf_size)
+{
+
+  return RDS_OK;
 }
 
 /*!
@@ -239,6 +277,17 @@ int RDSconnection::GetLocalDateTimeString(unsigned int src, char* buf)
 }
 
 // private member functions -------------------------------------
+
+void RDSconnection::debug_msg(int debug_level, const string& msg)
+{
+  if (debug_level<=active_debug_level){
+    int cnt = debug_msg_buf.size();
+    if (next_debug_line > cnt-1) debug_msg_buf.resize(next_debug_line+1);
+    debug_msg_buf[next_debug_line++] = msg;
+    if (next_debug_line >= max_debug_lines) next_debug_line=0;
+    if (next_debug_line == first_debug_line) first_debug_line++;
+  }
+}
 
 int RDSconnection::open_tcpip(string path, int port)
 {
