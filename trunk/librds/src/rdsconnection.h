@@ -39,9 +39,9 @@ public:
   //! The destructor.
   ~RDSconnection();
   //! Set library debugging parameters
-  int SetDebugParams(int debug_level, int max_lines);
+  int SetDebugParams(int debug_level, unsigned int max_lines);
   //! Get debug text buffer
-  int GetDebugTextBuffer(char* buf, int& buf_size);
+  int GetDebugTextBuffer(char* buf, unsigned int& buf_size);
   //! Open a connection to rdsd.
   int Open(string serv_path, int conn_type, int port, string my_path);
   //! Close the connection.
@@ -79,9 +79,11 @@ private:
   vector<rds_events_t> rcvd_events;
   vector<string> debug_msg_buf;
   int active_debug_level;
-  int first_debug_line;
-  int next_debug_line;
-  int max_debug_lines;
+  unsigned int first_debug_line;
+  unsigned int next_debug_line;
+  unsigned int max_debug_lines;
+  unsigned long timeout_time_msec;
+  unsigned long get_millisec_time();
   void debug_msg(int debug_level, const string& msg);
   int open_tcpip(string path, int port);
   int open_unix(string serv_path, string my_path);

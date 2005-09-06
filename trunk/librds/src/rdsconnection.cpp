@@ -43,6 +43,7 @@ RDSconnection::RDSconnection()
   first_debug_line = 0;
   next_debug_line = 0;
   max_debug_lines = 100;
+  timeout_time_msec = 3000; //max. wait time in milliseconds
 }
 
 /*!
@@ -60,10 +61,13 @@ RDSconnection::~RDSconnection()
                      debug_level==0 will turn debugging off.
   \param max_lines   Maximum number of lines in the internal buffer.
 */
-int RDSconnection::SetDebugParams(int debug_level, int max_lines)
+int RDSconnection::SetDebugParams(int debug_level, unsigned int max_lines)
 {
   active_debug_level = debug_level;
   max_debug_lines = max_lines;
+  debug_msg_buf.clear();
+  first_debug_line = 0;
+  next_debug_line = 0;
   return RDS_OK;
 }
 
@@ -81,9 +85,35 @@ int RDSconnection::SetDebugParams(int debug_level, int max_lines)
                   to by buf. If buf is a NULL pointer or buf_size has a zero value,
 		  buf_size will receive the required size for buf.
 */
-int RDSconnection::GetDebugTextBuffer(char* buf, int& buf_size)
+int RDSconnection::GetDebugTextBuffer(char* buf, unsigned int& buf_size)
 {
-
+  if ((buf==0)||(buf_size==0)){
+    buf_size=0;
+    unsigned int i=first_debug_line;
+    while (i != next_debug_line){
+      buf_size += debug_msg_buf[i].size();
+      buf_size += 1; // line feed char
+      ++i;
+      if (i >= debug_msg_buf.size()) i=0;
+    }
+    return RDS_OK;
+  }
+  unsigned int i=first_debug_line;
+  unsigned int size=0;
+  char *ptr = buf;
+  while ((i != next_debug_line)&&(size < buf_size)){
+    unsigned int len=debug_msg_buf[i].size();
+    if ((size+len)<buf_size){
+      memcpy(ptr,debug_msg_buf[i].c_str(),len);
+      ptr += len;
+      *ptr = '\n';
+      ptr++;
+    }
+    size += (len+1);
+    ++i;
+    if (i >= debug_msg_buf.size()) i=0;
+  }
+  *ptr = 0;
   return RDS_OK;
 }
 
@@ -278,10 +308,18 @@ int RDSconnection::GetLocalDateTimeString(unsigned int src, char* buf)
 
 // private member functions -------------------------------------
 
+unsigned long RDSconnection::get_millisec_time()
+{
+  struct timeval tv;
+  struct timezone tz;
+  gettimeofday(&tv,&tz);
+  return tv.tv_sec*1000 + tv.tv_usec/1000;
+}
+
 void RDSconnection::debug_msg(int debug_level, const string& msg)
 {
   if (debug_level<=active_debug_level){
-    int cnt = debug_msg_buf.size();
+    unsigned int cnt = debug_msg_buf.size();
     if (next_debug_line > cnt-1) debug_msg_buf.resize(next_debug_line+1);
     debug_msg_buf[next_debug_line++] = msg;
     if (next_debug_line >= max_debug_lines) next_debug_line=0;
@@ -380,16 +418,19 @@ int RDSconnection::wait_for_data(int src, const string& cmd, string& data)
   oss << cmd;
   RdsdCommand* RdsdCmd = CmdList.FindOrAdd(oss.str());
   if (! RdsdCmd) return RDS_CMD_LIST_ERROR; // Should never happen...
-  if (RdsdCmd->GetStatus() == RCS_REQUEST_NEEDED) send_command(src,cmd);
-  bool timeout=false;
-  while ((RdsdCmd->GetStatus() != RCS_VALID)&&(!timeout)){
+  if (RdsdCmd->GetStatus() == RCS_REQUEST_NEEDED){
+    int ret = send_command(src,cmd);
+    if (ret) return ret;
+  }
+  unsigned long t0,t1;
+  t0 = get_millisec_time();
+  while (RdsdCmd->GetStatus() != RCS_VALID){
     int ret = process();
     if (ret) return ret;
-    
-    //TODO: Add timeout detection here!
-    
+    t1 = get_millisec_time();
+    if ((t1>t0)&&((t1-t0)>timeout_time_msec)) return RDS_REQUEST_TIMEOUT;
+    if ((t1<t0)&&((t1+86400000-t0)>timeout_time_msec)) return RDS_REQUEST_TIMEOUT;
   }
-  if (timeout) return RDS_REQUEST_TIMEOUT;
   data = RdsdCmd->GetData();
   return RDS_OK;
 }
