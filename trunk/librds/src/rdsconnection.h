@@ -38,6 +38,8 @@ public:
   RDSconnection();
   //! The destructor.
   ~RDSconnection();
+  //! Set timeout in milliseconds
+  int SetTimeoutTime(unsigned int milliseconds);
   //! Set library debugging parameters
   int SetDebugParams(int debug_level, unsigned int max_lines);
   //! Get debug text buffer

@@ -57,9 +57,23 @@ RDSconnection::~RDSconnection()
 /*!
   Set parameters for library debugging. Calling this function will set the new
   parameters and clear the buffer.
+  \param milliseconds The timeout time in milliseconds. It must be in the range
+                      2..100000 (max. 100 seconds).
+*/
+int RDSconnection::SetTimeoutTime(unsigned int milliseconds)
+{
+  if ((milliseconds<2)||(milliseconds>100000)) return RDS_ILLEGAL_TIMEOUT;
+  timeout_time_msec = milliseconds;
+  return RDS_OK;
+}
+
+/*!
+  Set parameters for library debugging. Calling this function will set the new
+  parameters and clear the buffer.
   \param debug_level The higher this value is, the more information you will get.
                      debug_level==0 will turn debugging off.
   \param max_lines   Maximum number of lines in the internal buffer.
+  \return RDS_OK on success.
 */
 int RDSconnection::SetDebugParams(int debug_level, unsigned int max_lines)
 {
@@ -84,6 +98,7 @@ int RDSconnection::SetDebugParams(int debug_level, unsigned int max_lines)
   \param buf_size A variable that contains the size in chars of the buffer pointed
                   to by buf. If buf is a NULL pointer or buf_size has a zero value,
 		  buf_size will receive the required size for buf.
+  \return RDS_OK on success.
 */
 int RDSconnection::GetDebugTextBuffer(char* buf, unsigned int& buf_size)
 {

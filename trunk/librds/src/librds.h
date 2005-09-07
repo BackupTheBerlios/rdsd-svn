@@ -57,7 +57,8 @@ enum LibRdsErr {
   RDS_ILL_SRC_NUM,           //!< An illegal source number was given
   RDS_CMD_LIST_ERROR,        //!< An internal error in the command list. Must never happen!
   RDS_REQUEST_TIMEOUT,       //!< There was no response from rdsd within the time limit
-  RDS_UNEXPECTED_RESPONSE    //!< The response from rdsd is not what was expected
+  RDS_UNEXPECTED_RESPONSE,   //!< The response from rdsd is not what was expected
+  RDS_ILLEGAL_TIMEOUT        //!< Attempt to set a timeout value that is too big or too small
 }; 
 
 //! Type for a variable that stores RDS flags.
@@ -97,6 +98,12 @@ extern "C" {
 RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port, char* unix_path);
 //! Close a connection
 int rds_close_connection(RDSConnectionHandle hnd);
+//! Set the timeout for the communication with rdsd.
+int rds_set_timeout_time(RDSConnectionHandle hnd, unsigned int timeout_msec);
+//! Set debug parameters.
+int rds_set_debug_params(RDSConnectionHandle hnd, int debug_level, unsigned int max_lines);
+//! Get stored debug messages or query the required buffer size.
+int rds_get_debug_text(RDSConnectionHandle hnd, char* buf, unsigned int& buf_size);
 //! Enumerate the sources that rdsd knows about.
 int rds_enum_sources(RDSConnectionHandle hnd, char* buf);
 //! Set the event mask for a RDS data source.

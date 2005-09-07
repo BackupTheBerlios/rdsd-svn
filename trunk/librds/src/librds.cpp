@@ -74,6 +74,46 @@ int rds_close_connection(RDSConnectionHandle hnd)
 }
 
 /*!
+  Set the timeout for the communication with rdsd.
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success, RDS_ILLEGAL_TIMEOUT if the time is too big or too small.
+*/
+int rds_set_timeout_time(RDSConnectionHandle hnd, unsigned int timeout_msec)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->SetTimeoutTime(timeout_msec);
+}
+
+/*!
+  Set debug parameters.
+  \param hnd A valid handle returned by rds_open_connection().
+  \param debug_level The higher this value, the more information you get. 0 turns debugging off.
+  \param max_lines Maximum number of lines stored in the internal ring buffer.
+  \return RDS_OK on success.
+*/
+int rds_set_debug_params(RDSConnectionHandle hnd, int debug_level, unsigned int max_lines)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->SetDebugParams(debug_level,max_lines);
+}
+
+/*!
+  Get stored debug messages or query the required buffer size.
+  \param hnd A valid handle returned by rds_open_connection().
+  \param buf      Pointer to a buffer to receive the text. The user is responsible
+                  for the allocation of this buffer.
+  \param buf_size A variable that contains the size in chars of the buffer pointed
+                  to by buf. If buf is a NULL pointer or buf_size has a zero value,
+		  buf_size will receive the required size for buf.
+  \return RDS_OK on success.
+*/
+int rds_get_debug_text(RDSConnectionHandle hnd, char* buf, unsigned int& buf_size)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetDebugTextBuffer(buf,buf_size);
+}
+
+/*!
   rds_enum_sources() is usually the first function you will call after a successful
   rds_open_connection(). It fills a buffer with a number of ASCII lines. Each line
   represents an RDS input source that is used by rdsd. Each line starts with a number,
@@ -92,66 +132,121 @@ int rds_enum_sources(RDSConnectionHandle hnd, char* buf, int bufsize)
   return conn->EnumSources(buf,bufsize);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_set_event_mask(RDSConnectionHandle hnd, int src, rds_events_t evnt_mask)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->SetEventMask(src, evnt_mask);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t &evnt_mask)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetEventMask(src, evnt_mask);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t &events)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetEvent(src, events);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t &flags)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetFlags(src, flags);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_pty_code(RDSConnectionHandle hnd, int src, int &pty_code)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetPTYcode(src, pty_code);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_pi_code(RDSConnectionHandle hnd, int src, int &pi_code)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetPIcode(src, pi_code);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_program_name(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetProgramName(src, buf);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_radiotext(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetRadiotext(src, buf);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_last_radiotext(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetLastRadiotext(src, buf);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_utc_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
   return conn->GetUTCDateTimeString(src, buf);
 }
 
+/*!
+
+  \param hnd A valid handle returned by rds_open_connection().
+  \return RDS_OK on success,
+*/
 int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
