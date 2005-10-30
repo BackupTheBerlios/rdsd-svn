@@ -213,12 +213,9 @@ void RDSclient::split_cmd(int& src_num, string& cmd_str, long& param, bool& par_
   }
   i=paramstr.size();
   if ((i>0)&&(i<11)){
-    char* endp;
-    errno = 0;
-    param = strtol(paramstr.c_str(),&endp,0);
-    if (endp == paramstr.c_str()) par_valid=false;
-      else if (*endp != 0) par_valid=false;
-    if (errno) par_valid=false;
+    istringstream iss(paramstr);
+    if (iss >> param) par_valid=true;
+    else par_valid=false;
   }
 }
 

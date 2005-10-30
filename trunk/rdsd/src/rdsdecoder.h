@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <string>
+#include <librds.h>
 
 namespace std {
 
@@ -41,27 +42,6 @@ enum RDSGroupType {GROUP_0A,GROUP_0B,GROUP_1A,GROUP_1B,GROUP_2A,GROUP_2B,
 enum TMCtype {TMC_GROUP,TMC_SINGLE,TMC_SYSTEM,TMC_TUNING,TMC_UNKNOWN};
 
 typedef vector<unsigned char> CharBuf;
-
-typedef unsigned long rds_flags_t;
-
-const rds_flags_t RDS_FLAG_IS_TP              = 0x0001;
-const rds_flags_t RDS_FLAG_IS_TA              = 0x0002;
-const rds_flags_t RDS_FLAG_IS_MUSIC           = 0x0004;
-const rds_flags_t RDS_FLAG_IS_STEREO          = 0x0008;
-const rds_flags_t RDS_FLAG_IS_ARTIFICIAL_HEAD = 0x0010;
-const rds_flags_t RDS_FLAG_IS_COMPRESSED      = 0x0020;
-const rds_flags_t RDS_FLAG_IS_DYNAMIC_PTY     = 0x0040;
-const rds_flags_t RDS_FLAG_TEXT_AB            = 0x0080;
-
-typedef unsigned long rds_events_t;
-
-const rds_events_t RDS_EVENT_FLAGS          = 0x0001;
-const rds_events_t RDS_EVENT_PI_CODE        = 0x0002;
-const rds_events_t RDS_EVENT_PTY_CODE       = 0x0004;
-const rds_events_t RDS_EVENT_PROGRAMNAME    = 0x0008;
-const rds_events_t RDS_EVENT_DATETIME       = 0x0010;
-const rds_events_t RDS_EVENT_RADIOTEXT      = 0x0020;
-const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0040;
 
 class RDSdecoder{
 public:

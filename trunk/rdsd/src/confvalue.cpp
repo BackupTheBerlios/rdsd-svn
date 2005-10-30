@@ -141,25 +141,23 @@ string ConfValue::bool2string(bool val){
 }
 
 int ConfValue::string2int(string sval, bool &valid){
-  valid=true;
-  char* endp;
-  errno = 0;
-  int ret = strtol(sval.c_str(),&endp,0);
-  if (endp == sval.c_str()) valid=false;
-    else if (*endp != 0) valid=false;
-  if (errno) valid=false;
-  return ret;
+  istringstream iss(sval);
+  int result;
+  if (iss >> result) {
+    valid = true;
+    return result;
+  }
+  return 0;
 }
     
 double ConfValue::string2double(string sval, bool &valid){
-  valid=true;
-  char* endp;
-  errno = 0;
-  double ret = strtod(sval.c_str(),&endp);
-  if (endp == sval.c_str()) valid=false;
-    else if (*endp != 0) valid=false;
-  if (errno) valid=false;
-  return ret;
+  istringstream iss(sval);
+  double result;
+  if (iss >> result) {
+    valid = true;
+    return result;
+  }
+  return 0.0;
 }
 
 bool ConfValue::string2bool(string sval, bool &valid){
