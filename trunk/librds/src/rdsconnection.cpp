@@ -100,7 +100,7 @@ int RDSconnection::SetDebugParams(int debug_level, unsigned int max_lines)
 		  buf_size will receive the required size for buf.
   \return RDS_OK on success.
 */
-int RDSconnection::GetDebugTextBuffer(char* buf, unsigned int& buf_size)
+int RDSconnection::GetDebugTextBuffer(char* buf, size_t& buf_size)
 {
   if ((buf==0)||(buf_size==0)){
     buf_size=0;
@@ -109,15 +109,15 @@ int RDSconnection::GetDebugTextBuffer(char* buf, unsigned int& buf_size)
       buf_size += debug_msg_buf[i].size();
       buf_size += 1; // line feed char
       ++i;
-      if (i >= debug_msg_buf.size()) i=0;
+      if (i >= max_debug_lines) i=0;
     }
     return RDS_OK;
   }
   unsigned int i=first_debug_line;
-  unsigned int size=0;
+  size_t size=0;
   char *ptr = buf;
   while ((i != next_debug_line)&&(size < buf_size)){
-    unsigned int len=debug_msg_buf[i].size();
+    size_t len = debug_msg_buf[i].size();
     if ((size+len)<buf_size){
       memcpy(ptr,debug_msg_buf[i].c_str(),len);
       ptr += len;
@@ -126,7 +126,7 @@ int RDSconnection::GetDebugTextBuffer(char* buf, unsigned int& buf_size)
     }
     size += (len+1);
     ++i;
-    if (i >= debug_msg_buf.size()) i=0;
+    if (i >= max_debug_lines) i=0;
   }
   *ptr = 0;
   return RDS_OK;
@@ -148,14 +148,15 @@ int RDSconnection::GetDebugTextBuffer(char* buf, unsigned int& buf_size)
   \return On success, Open() returns RDS_OK (0). Otherwise, a positive error code is
           returned.
 */
-int RDSconnection::Open(string serv_path, int conn_type, int port, string my_path)
+int RDSconnection::Open(const char* serv_path, int conn_type, int port, const char* my_path)
 {
   switch (conn_type){
     case CONN_TYPE_TCPIP: return open_tcpip(serv_path,port); 
                           break;
     case CONN_TYPE_UNIX:  return open_unix(serv_path,my_path);
                           break;
-    default: return RDS_ILLEGAL_CONN_TYPE;
+    default: debug_msg(RDS_DEBUG_ERROR,"rds_open_connection(): Illegal conn_type.");
+             return RDS_ILLEGAL_CONN_TYPE;
   }
 }
 
@@ -196,12 +197,17 @@ int RDSconnection::EnumSources(char* buf, size_t bufsize)
 
 int RDSconnection::SetEventMask(unsigned int src, rds_events_t evnt_mask)
 {
-  int ret = send_command(src,"sevnt");
+  ostringstream oss;
+  oss << evnt_mask;
+  int ret = send_command(src,"sevnt",oss.str());
   if (ret) return ret;
   string data;
   ret = wait_for_data(src,"sevnt",data);
   if (ret) return ret;
-  if (data != "OK") return RDS_UNEXPECTED_RESPONSE;
+  if (data != "OK"){
+    debug_msg(RDS_DEBUG_WARN,"SetEventMask(): Unexpected response: >"+data+"<");
+    return RDS_UNEXPECTED_RESPONSE;
+  }
   return RDS_OK;
 }
 
@@ -335,25 +341,31 @@ void RDSconnection::debug_msg(int debug_level, const string& msg)
 {
   if (debug_level<=active_debug_level){
     unsigned int cnt = debug_msg_buf.size();
-    if (next_debug_line > cnt-1) debug_msg_buf.resize(next_debug_line+1);
-    debug_msg_buf[next_debug_line++] = msg;
+    if (next_debug_line >= cnt) debug_msg_buf.resize(next_debug_line+1);
+    debug_msg_buf[next_debug_line] = msg;
+    next_debug_line++;
     if (next_debug_line >= max_debug_lines) next_debug_line=0;
     if (next_debug_line == first_debug_line) first_debug_line++;
   }
 }
 
-int RDSconnection::open_tcpip(string path, int port)
+int RDSconnection::open_tcpip(const char* path, int port)
 {
-  if (sock_fd>=0) return RDS_SOCKET_ALREADY_OPEN;
+  if (sock_fd>=0){
+    debug_msg(RDS_DEBUG_WARN,"rds_open_connection(): Already open.");
+    return RDS_SOCKET_ALREADY_OPEN;
+  }
   struct hostent *server;
   struct in_addr inaddr;
-  if (inet_aton(path.c_str(),&inaddr))
+  if (inet_aton(path,&inaddr))
     server = gethostbyaddr((char*)&inaddr,sizeof(inaddr),AF_INET);
   else
-    server = gethostbyname(path.c_str());
+    server = gethostbyname(path);
 
-  if (!server) return RDS_SERVER_NOT_FOUND;
-
+  if (!server){
+    debug_msg(RDS_DEBUG_ERROR,"rds_open_connection(): TCP/IP server not found.");
+    return RDS_SERVER_NOT_FOUND;
+  }
   struct sockaddr_in sock_addr;
 
   sock_addr.sin_family = AF_INET;
@@ -361,65 +373,83 @@ int RDSconnection::open_tcpip(string path, int port)
   memcpy(&sock_addr.sin_addr, server->h_addr_list[0], sizeof(sock_addr.sin_addr));
 
   sock_fd = socket(PF_INET, SOCK_STREAM, 0);
-  if (sock_fd < 0) return RDS_SOCKET_ERROR;
-
+  if (sock_fd < 0){
+    debug_msg(RDS_DEBUG_ERROR,"rds_open_connection(): No socket.");
+    return RDS_SOCKET_ERROR;
+  }
   if (connect(sock_fd,(struct sockaddr*)&sock_addr,sizeof(sock_addr))){
+    debug_msg(RDS_DEBUG_ERROR,"rds_open_connection(): connect() failed.");
     Close();
     return RDS_CONNECT_ERROR;
   }
-  
+  debug_msg(RDS_DEBUG_INFO,"rds_open_connection(): TCP/IP connect() succeeded.");
   return RDS_OK;
 }
 
-int RDSconnection::open_unix(string serv_path, string my_path)
+int RDSconnection::open_unix(const char* serv_path, const char* my_path)
 {
-  if (sock_fd>=0) return RDS_SOCKET_ALREADY_OPEN;
+  if (sock_fd>=0){
+    debug_msg(RDS_DEBUG_WARN,"rds_open_connection(): Already open.");
+    return RDS_SOCKET_ALREADY_OPEN;
+  }
   
   struct sockaddr_un sock_addr;
   // Create unix domain socket
   sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (sock_fd < 0) return RDS_SOCKET_ERROR;
+  if (sock_fd < 0){
+    debug_msg(RDS_DEBUG_ERROR,"rds_open_connection(): No socket.");
+    return RDS_SOCKET_ERROR;
+  }
   // Write sock_addr with own address
   memset(&sock_addr,0,sizeof(sock_addr));
   sock_addr.sun_family = AF_UNIX;
-  strncpy(sock_addr.sun_path,my_path.c_str(),sizeof(sock_addr.sun_path)-1);
+  strncpy(sock_addr.sun_path,my_path,sizeof(sock_addr.sun_path)-1);
   int size = strlen(sock_addr.sun_path)+sizeof(sock_addr.sun_family);
   unlink(sock_addr.sun_path);
   if (bind(sock_fd,(struct sockaddr*)&sock_addr,size)<0){
+    debug_msg(RDS_DEBUG_ERROR,"rds_open_connection(): bind() failed.");
     close(sock_fd);
     return RDS_BIND_ERROR;
   }
   if (chmod(sock_addr.sun_path,S_IRWXU)<0){
+    debug_msg(RDS_DEBUG_ERROR,"rds_open_connection(): chmod() failed.");
     Close();
     return RDS_CHMOD_ERROR;
   }
   // Write sock_addr with server address
   memset(&sock_addr,0,sizeof(sock_addr));
   sock_addr.sun_family = AF_UNIX;
-  strncpy(sock_addr.sun_path,serv_path.c_str(),sizeof(sock_addr.sun_path)-1);
+  strncpy(sock_addr.sun_path,serv_path,sizeof(sock_addr.sun_path)-1);
   size = strlen(sock_addr.sun_path)+sizeof(sock_addr.sun_family);
 
   if (connect(sock_fd,(struct sockaddr*)&sock_addr,size)<0){
+    debug_msg(RDS_DEBUG_ERROR,"rds_open_connection(): connect() failed.");
     Close();
     return RDS_CONNECT_ERROR;
   }
+  debug_msg(RDS_DEBUG_INFO,"rds_open_connection(): unix socket connect() succeeded.");
   return RDS_OK;
 }
 
-int RDSconnection::send_command(int src, const string& cmd)
+int RDSconnection::send_command(int src, const string& cmd, const string& opt_param)
 {
   if (sock_fd<0) return RDS_SOCKET_NOT_OPEN;
   ostringstream oss;
   if (src>=0) oss << src << ":";
   oss << cmd;
-
+  
   RdsdCommand* RdsdCmd = CmdList.FindOrAdd(oss.str());
   if (! RdsdCmd) return RDS_CMD_LIST_ERROR; // Should never happen...
-
+  
   if (RdsdCmd->GetStatus() != RCS_WAITING){
+    if (opt_param.size()>0) oss << " " << opt_param;
+    debug_msg(RDS_DEBUG_MORE,"send_command(): Will send: "+oss.str());
     oss << endl;
     int n = oss.str().size();
-    if (write(sock_fd,oss.str().c_str(),n)!=n) return RDS_WRITE_ERROR;
+    if (write(sock_fd,oss.str().c_str(),n)!=n){
+      debug_msg(RDS_DEBUG_MORE,"send_command(): write() failed.");
+      return RDS_WRITE_ERROR;
+    }
     RdsdCmd->SetStatus(RCS_WAITING);
   }
   
@@ -431,10 +461,11 @@ int RDSconnection::wait_for_data(int src, const string& cmd, string& data)
   ostringstream oss;
   if (src>=0) oss << src << ":";
   oss << cmd;
+  debug_msg(RDS_DEBUG_MOST,"wait_for_data(): Waiting for: "+oss.str());
   RdsdCommand* RdsdCmd = CmdList.FindOrAdd(oss.str());
   if (! RdsdCmd) return RDS_CMD_LIST_ERROR; // Should never happen...
   if (RdsdCmd->GetStatus() == RCS_REQUEST_NEEDED){
-    int ret = send_command(src,cmd);
+    int ret = send_command(src,cmd,"");
     if (ret) return ret;
   }
   unsigned long t0,t1;
@@ -443,9 +474,15 @@ int RDSconnection::wait_for_data(int src, const string& cmd, string& data)
     int ret = process();
     if (ret) return ret;
     t1 = get_millisec_time();
-    if ((t1>t0)&&((t1-t0)>timeout_time_msec)) return RDS_REQUEST_TIMEOUT;
-    if ((t1<t0)&&((t1+86400000-t0)>timeout_time_msec)) return RDS_REQUEST_TIMEOUT;
+    bool timeout = false;
+    if ((t1>t0)&&((t1-t0)>timeout_time_msec)) timeout=true;
+    if ((t1<t0)&&((t1+86400000-t0)>timeout_time_msec)) timeout=true;
+    if (timeout){
+      debug_msg(RDS_DEBUG_WARN,"wait_for_data(): Timeout waiting for: "+oss.str());
+      return RDS_REQUEST_TIMEOUT;
+    }
   }
+  debug_msg(RDS_DEBUG_MOST,"wait_for_data(): Found data for: "+oss.str());
   data = RdsdCmd->GetData();
   return RDS_OK;
 }
@@ -457,15 +494,25 @@ int RDSconnection::process()
   if (rd_cnt<0) return RDS_READ_ERROR;
   enum ScanState {ssEOL=0,ssData,ssTerm,ssEvent};
   ScanState state = (ScanState)last_scan_state;
-  int i=0;
+  int n, i=0;
   while (i<rd_cnt){
     char ch = read_buf[i];
     switch (ch){
       case '\n':
       case '\r': switch (state) {
-                   case ssTerm:  process_msg();
+                   case ssTerm:  n = read_str.size()-1;
+				 while (n>0){
+				   if ((read_str[n]=='\n')||(read_str[n]=='\r')){
+				     read_str.erase(n,1);
+				   }
+				   else n=0;
+				   n--;
+				 }
+				 process_msg();
+                                 state = ssEOL;
 		                 break;
 		   case ssEvent: process_event_msg();
+				 state = ssEOL;
 		                 break; 
 		   case ssEOL:   break;
                    default: read_str.push_back(ch);
@@ -532,6 +579,7 @@ bool RDSconnection::process_msg()
     ++i;
   } 
   read_str = "";
+  debug_msg(RDS_DEBUG_MOST,"process_msg(): Adding message: "+cmd_str);
   RdsdCommand* RdsdCmd = CmdList.FindOrAdd(cmd_str);
   if (! RdsdCmd) return RDS_CMD_LIST_ERROR; // Should never happen...
   RdsdCmd->SetData(data_str);
@@ -595,17 +643,18 @@ bool RDSconnection::process_event_msg()
     rcvd_events.resize(src+1);
     while (i<(src+1)) rcvd_events[i++] = 0;
   }
+  debug_msg(RDS_DEBUG_MOST,"process_event_msg(): Received events: "+evnt_str);
   rcvd_events[src] |= event_code;
-  if (event_code & RDS_EVENT_FLAGS)          send_command(src,"rflags");
-  if (event_code & RDS_EVENT_PI_CODE)        send_command(src,"picode");
-  if (event_code & RDS_EVENT_PTY_CODE)       send_command(src,"ptype");
-  if (event_code & RDS_EVENT_PROGRAMNAME)    send_command(src,"pname");
+  if (event_code & RDS_EVENT_FLAGS)          send_command(src,"rflags","");
+  if (event_code & RDS_EVENT_PI_CODE)        send_command(src,"picode","");
+  if (event_code & RDS_EVENT_PTY_CODE)       send_command(src,"ptype","");
+  if (event_code & RDS_EVENT_PROGRAMNAME)    send_command(src,"pname","");
   if (event_code & RDS_EVENT_DATETIME){
-                                             send_command(src,"utcdt");
-                                             send_command(src,"locdt");
+                                             send_command(src,"utcdt","");
+                                             send_command(src,"locdt","");
   }
-  if (event_code & RDS_EVENT_RADIOTEXT)      send_command(src,"rtxt");
-  if (event_code & RDS_EVENT_LAST_RADIOTEXT) send_command(src,"lrtxt");
+  if (event_code & RDS_EVENT_RADIOTEXT)      send_command(src,"rtxt","");
+  if (event_code & RDS_EVENT_LAST_RADIOTEXT) send_command(src,"lrtxt","");
 
   return true;
 }

@@ -39,7 +39,7 @@ public:
   //! The constructor
   RdsdCommand() { status=RCS_REQUEST_NEEDED; };
   //! The destructor
-  ~RdsdCommand();
+  ~RdsdCommand() { };
   //! Get the current status of the command
   RdsdCommandStatus GetStatus(){ return status; };
   //! Set the current status of the command
@@ -52,6 +52,8 @@ private:
   RdsdCommandStatus status;
   string data;
 };
+
+typedef map<string,RdsdCommand*> RdsdCommandMap;
 
 /**
 RdsdCommandList is a class used in librds. It stores status and data of commands
@@ -72,7 +74,7 @@ public:
   //! Find information about a command string. If no object is found, add a new one.
   RdsdCommand* FindOrAdd(const string& CmdStr);
 private:
-  map<string,RdsdCommand*> CmdMap;
+  RdsdCommandMap CmdMap;
 
 };
 

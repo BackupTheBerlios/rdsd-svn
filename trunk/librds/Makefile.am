@@ -3,5 +3,4 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src
-_SOURCES = rdsdcommandlist.h
-_SOURCES = rdsdcommandlist.h rdsdcommandlist.cpp
+

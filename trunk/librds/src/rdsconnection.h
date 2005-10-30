@@ -43,9 +43,9 @@ public:
   //! Set library debugging parameters
   int SetDebugParams(int debug_level, unsigned int max_lines);
   //! Get debug text buffer
-  int GetDebugTextBuffer(char* buf, unsigned int& buf_size);
+  int GetDebugTextBuffer(char* buf, size_t& buf_size);
   //! Open a connection to rdsd.
-  int Open(string serv_path, int conn_type, int port, string my_path);
+  int Open(const char* serv_path, int conn_type, int port, const char* my_path);
   //! Close the connection.
   int Close();
   //! Get the list of sources known by rdsd.
@@ -87,9 +87,9 @@ private:
   unsigned long timeout_time_msec;
   unsigned long get_millisec_time();
   void debug_msg(int debug_level, const string& msg);
-  int open_tcpip(string path, int port);
-  int open_unix(string serv_path, string my_path);
-  int send_command(int src, const string& cmd);
+  int open_tcpip(const char* path, int port);
+  int open_unix(const char* serv_path, const char* my_path);
+  int send_command(int src, const string& cmd, const string& opt_param);
   int wait_for_data(int src, const string& cmd, string& data);
   int process();
   bool StringToEvnt(const string &s, rds_events_t &evnt);

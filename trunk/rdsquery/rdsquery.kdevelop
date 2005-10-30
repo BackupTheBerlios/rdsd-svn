@@ -23,7 +23,7 @@
     </ignoreparts>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description></description>
+    <description/>
     <secondaryLanguages/>
   </general>
   <kdevautoproject>
@@ -36,9 +36,12 @@
       <terminal>true</terminal>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
-      <programargs></programargs>
+      <programargs/>
       <autocompile>true</autocompile>
       <envvars/>
+      <runarguments>
+        <rdsquery/>
+      </runarguments>
     </run>
     <configurations>
       <optimized>
@@ -58,6 +61,20 @@
       </debug>
       <default>
         <envvars/>
+        <configargs/>
+        <builddir/>
+        <topsourcedir/>
+        <cppflags/>
+        <ldflags/>
+        <ccompiler>kdevgccoptions</ccompiler>
+        <cxxcompiler>kdevgppoptions</cxxcompiler>
+        <f77compiler>kdevg77options</f77compiler>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <cflags/>
+        <cxxflags/>
+        <f77flags/>
       </default>
     </configurations>
     <make>
@@ -68,7 +85,7 @@
       <abortonerror>false</abortonerror>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin></makebin>
+      <makebin/>
       <prio>0</prio>
     </make>
   </kdevautoproject>
@@ -119,6 +136,7 @@
     </ignoredoxygen>
   </kdevdoctreeview>
   <kdevfilecreate>
+    <filetypes/>
     <useglobaltypes>
       <type ext="cpp" />
       <type ext="h" />
@@ -128,12 +146,19 @@
     <groups>
       <group pattern="*.h" name="Header files" />
       <group pattern="*.cpp" name="Source files" />
+      <hidenonprojectfiles>false</hidenonprojectfiles>
+      <hidenonlocation>false</hidenonlocation>
     </groups>
+    <tree>
+      <hidepatterns>*.o,*.lo,CVS</hidepatterns>
+      <hidenonprojectfiles>false</hidenonprojectfiles>
+    </tree>
   </kdevfileview>
   <kdevdocumentation>
     <projectdoc>
-      <docsystem>Doxygen Documentation Collection</docsystem>
+      <docsystem>Doxygen-Dokumentation</docsystem>
       <docurl>rdsquery.tag</docurl>
+      <usermanualurl/>
     </projectdoc>
   </kdevdocumentation>
   <substmap>

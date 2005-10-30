@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   koch@hjk-az.de                                                        *
+ *   koch@users.berlios.de                                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,45 +17,46 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "rdsdcommandlist.h"
+#ifndef STDRDSQOPTIONS_H
+#define STDRDSQOPTIONS_H
+
+#include <librds.h>
+#include <string>
 
 namespace std {
 
-RdsdCommandList::RdsdCommandList()
-{
-}
-
-
-RdsdCommandList::~RdsdCommandList()
-{
-}
-
-void RdsdCommandList::Clear()
-{
-  
-  RdsdCommandMap::iterator it;
-  for (it=CmdMap.begin(); it != CmdMap.end(); it++){
-    delete (it->second);
-  }
-  CmdMap.clear();
-}
-
-RdsdCommand* RdsdCommandList::Find(const string& CmdStr)
-{
-  RdsdCommandMap::iterator it = CmdMap.find(CmdStr);
-  if (it == CmdMap.end()) return 0;
-  return it->second;
-}
-
-RdsdCommand* RdsdCommandList::FindOrAdd(const string& CmdStr)
-{
-  RdsdCommand* result = Find(CmdStr);
-  if (! result){
-    result = new RdsdCommand;
-    CmdMap[CmdStr] = result;
-  }
-  return result;
-}
-
-
+/**
+@author Hans J. Koch
+*/
+class RdsqOptions{
+public:
+    RdsqOptions();
+    ~RdsqOptions();
+    bool ProcessCmdLine(int argc, char *argv[]);
+    int GetRecordCount() { return record_count; }
+    int GetConnectionType() { return conn_type; }
+    const string& GetServerName() { return server_name; }
+    int GetPort() { return tcpip_port; }
+    int GetSourceNum() { return source_num; }
+    rds_events_t GetEventMask() { return event_mask; }
+private:
+  int record_count;
+  int conn_type;
+  string server_name;
+  int tcpip_port;
+  int source_num;
+  rds_events_t event_mask;
+  bool have_opt_s;
+  bool have_opt_p;
+  bool have_opt_t;
+  bool have_opt_u;
+  void show_usage();
+  void show_version();
+  bool try_str_to_int(char *s, int &result);
+  int find_cmd_num(const string& S);
+  bool try_parse_types(char *s, rds_events_t &result);
 };
+
+}
+
+#endif

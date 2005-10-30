@@ -21,6 +21,8 @@
 #ifndef LIBRDS_H
 #define LIBRDS_H
 
+#include <sys/types.h>
+
 //! Type of the handle returned by rds_open_connection()
 /*!
   Presently, a pointer to an object of class RDSconnection is used as a handle.
@@ -33,6 +35,55 @@ const unsigned int MAX_SRC_NUM = 255;   //!< Maximum RDS source number
 
 const int CONN_TYPE_TCPIP = 1; //!< Connection uses TCP/IP
 const int CONN_TYPE_UNIX  = 2; //!< Connection uses unix domain socket
+
+//! Constants for commands.
+/*!
+  Used internally.
+*/
+
+enum RdsCmdNums {
+  RDS_CMD_NONE = 0,   //!< No command. This is usually an error.
+  RDS_CMD_ENUM_SRC,
+  RDS_CMD_SET_RX_FREQ,
+  RDS_CMD_GET_RX_FREQ,
+  RDS_CMD_SET_EVENT,
+  RDS_CMD_GET_EVENT,
+  RDS_CMD_FLAGS,
+  RDS_CMD_PI_CODE,
+  RDS_CMD_PTY_CODE,
+  RDS_CMD_PROGRAMNAME,
+  RDS_CMD_LOCDATETIME,
+  RDS_CMD_UTCDATETIME,
+  RDS_CMD_RADIOTEXT,
+  RDS_CMD_LAST_RADIOTEXT,
+  RDS_CMD_TMC,
+  RDS_CMD_COUNT   //!< Dummy value to determine the command count.
+};
+
+
+//! String representations of commands.
+/*!
+  These strings are used by rdsd's protocol. Commandline tool rdsquery
+  also uses them.
+*/
+
+static const char* RdsCommands[RDS_CMD_COUNT] = {
+	"none",
+	"esrc",
+	"srxfre",
+	"grxfre",
+	"sevnt",
+	"gevnt",
+	"rflags",
+	"picode",
+	"ptype",
+	"pname",
+	"locdt",
+	"utcdt",
+	"rtxt",
+	"lrtxt",
+	"tmc",
+};
 
 //! Error codes returned by librds API functions
 /*!
@@ -58,7 +109,8 @@ enum LibRdsErr {
   RDS_CMD_LIST_ERROR,        //!< An internal error in the command list. Must never happen!
   RDS_REQUEST_TIMEOUT,       //!< There was no response from rdsd within the time limit
   RDS_UNEXPECTED_RESPONSE,   //!< The response from rdsd is not what was expected
-  RDS_ILLEGAL_TIMEOUT        //!< Attempt to set a timeout value that is too big or too small
+  RDS_ILLEGAL_TIMEOUT,       //!< Attempt to set a timeout value that is too big or too small
+  RDS_NOT_IMPLEMENTED	     //!< The requested feature is not implemented (yet).
 }; 
 
 //! Type for a variable that stores RDS flags.
@@ -91,11 +143,35 @@ const rds_events_t RDS_EVENT_PROGRAMNAME    = 0x0008; //!< The program name has 
 const rds_events_t RDS_EVENT_DATETIME       = 0x0010; //!< A new date/time info was received
 const rds_events_t RDS_EVENT_RADIOTEXT      = 0x0020; //!< New characters were added to the radiotext buffer
 const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0040; //!< A radio text string was completed
+const rds_events_t RDS_EVENT_TMC            = 0x0080; //!< The TMC message list was modified
+
+//! Constants for debug levels
+/*!
+  To be displayed, a debug message must have a level that is lower than or equal to the
+  debug level set with rds_set_debug_params(). The minimum level that is used internally
+  is RDS_DEBUG_ERROR, so setting the debug level to RDS_DEBUG_OFF will turn off all debug
+  messages.
+*/
+
+enum RdsDebugLevels {
+  RDS_DEBUG_OFF = 0, //!< This will turn off debug messages
+  RDS_DEBUG_ERROR,   //!< Serious errors
+  RDS_DEBUG_WARN,    //!< Warnings
+  RDS_DEBUG_INFO,    //!< Basic information
+  RDS_DEBUG_MORE,    //!< More information
+  RDS_DEBUG_MOST,    //!< Even more information
+  RDS_DEBUG_ALL      //!< A lot of details only usefull for developers
+};
 
 extern "C" {
 
+//! Create a connection object
+RDSConnectionHandle rds_create_connection_object();
+//! Delete the connection object and free the associated resources.
+int rds_delete_connection_object(RDSConnectionHandle hnd);
 //! Open a connection with rdsd.
-RDSConnectionHandle rds_open_connection(char* rdsd_path, int conn_type, int port, char* unix_path);
+int rds_open_connection(RDSConnectionHandle hnd, const char* rdsd_path, int conn_type,
+                        int port, const char* unix_path);
 //! Close a connection
 int rds_close_connection(RDSConnectionHandle hnd);
 //! Set the timeout for the communication with rdsd.
@@ -105,7 +181,7 @@ int rds_set_debug_params(RDSConnectionHandle hnd, int debug_level, unsigned int 
 //! Get stored debug messages or query the required buffer size.
 int rds_get_debug_text(RDSConnectionHandle hnd, char* buf, unsigned int& buf_size);
 //! Enumerate the sources that rdsd knows about.
-int rds_enum_sources(RDSConnectionHandle hnd, char* buf);
+int rds_enum_sources(RDSConnectionHandle hnd, char* buf, size_t bufsize);
 //! Set the event mask for a RDS data source.
 int rds_set_event_mask(RDSConnectionHandle hnd, int src, rds_events_t evnt_mask);
 //! Query the event mask that is used for a RDS data source.
@@ -128,7 +204,8 @@ int rds_get_last_radiotext(RDSConnectionHandle hnd, int src, char* buf);
 int rds_get_utc_datetime_string(RDSConnectionHandle hnd, int src, char* buf);
 //! Get the last local date/time as a string.
 int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf);
-
+//! Get the TMC message buffer or query the required buffer size.
+int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize);
 }
 
 #endif
