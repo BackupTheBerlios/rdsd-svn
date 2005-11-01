@@ -45,6 +45,38 @@ void RdsQueryHandler::ShowError(int rds_err_num)
   if (show_debug_on_error) show_debug();
 }
 
+void RdsQueryHandler::ShowEnumSrc()
+{
+  const size_t buf_size = 2048;
+  vector<char> buf(buf_size);
+  int ret = rds_enum_sources(handle,&buf[0],buf_size);
+  cout << "esrc:";
+  if (ret) ShowError(ret);
+  else {
+    string s(&buf[0]);
+    cout << s << endl;
+  }
+}
+
+void RdsQueryHandler::ShowFlags()
+{
+  rds_flags_t flags;
+  int ret = rds_get_flags(handle,src_num,flags);
+  cout << "rflags:";
+  if (ret) ShowError(ret);
+  else {
+    if (flags & RDS_FLAG_IS_TP) cout << "TP=1 "; else cout << "TP=0 ";
+    if (flags & RDS_FLAG_IS_TA) cout << "TA=1 "; else cout << "TA=0 ";
+    if (flags & RDS_FLAG_IS_MUSIC) cout << "MUSIC=1 "; else cout << "MUSIC=0 ";
+    if (flags & RDS_FLAG_IS_STEREO) cout << "STEREO=1 "; else cout << "STEREO=0 ";
+    if (flags & RDS_FLAG_IS_ARTIFICIAL_HEAD) cout << "AH=1 "; else cout << "AH=0 ";
+    if (flags & RDS_FLAG_IS_COMPRESSED) cout << "COMP=1 "; else cout << "COMP=0 ";
+    if (flags & RDS_FLAG_IS_DYNAMIC_PTY) cout << "DPTY=1 "; else cout << "DPTY=0 ";
+    if (flags & RDS_FLAG_TEXT_AB) cout << "AB=1"; else cout << "AB=0";
+    cout << endl;
+  }
+}
+
 void RdsQueryHandler::ShowPIcode()
 {
   int result;

@@ -26,6 +26,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <csignal>
 #include "rdsqoptions.h"
 #include "rdsqueryhandler.h"
 
@@ -34,6 +35,8 @@
 //#include <dlfcn.h>
 
 using namespace std;
+
+RDSConnectionHandle hnd = 0;
 
 void show_debug(RDSConnectionHandle hnd)
 {
@@ -56,54 +59,70 @@ void clean_exit(RDSConnectionHandle hnd)
   exit(0);
 }
 
+static void sig_proc(int signr)
+{
+  if (signr == SIGINT){
+    cerr << "Caught SIGINT, ";
+    if (hnd) {
+      cerr << "closing connection, ";
+      rds_close_connection(hnd);
+      rds_delete_connection_object(hnd);
+    }
+    cerr << "exiting." << endl;
+    exit(1);
+  }
+}
+
 int main(int argc, char *argv[])
 {
+  signal(SIGINT,sig_proc);
+
   RdsqOptions opts;
   if (! opts.ProcessCmdLine(argc,argv)) exit(1);
+
+  opts.ShowOptions();
   
   RdsQueryHandler rds;
   
-  RDSConnectionHandle hnd = rds_create_connection_object();
+  hnd = rds_create_connection_object();
   if (! hnd){
-    cout << "No connection object." << endl;
-    return 1;
+    cerr << "FATAL ERROR: No connection object, exiting." << endl;
+    exit(2);
   }
-
-  cout << "Got a handle!" << endl;
 
   rds.SetHandle(hnd);
   rds.SetSourceNum(opts.GetSourceNum());
  
-  rds_set_debug_params(hnd,RDS_DEBUG_ALL,500);
+  int ret = rds_set_debug_params(hnd,RDS_DEBUG_ALL,500);
 
-  cout << "Debug params set!" << endl;
+  if (ret) rds.ShowError(ret);
 
-  int ret = rds_open_connection(hnd,
+  ret = rds_open_connection(hnd,
                                 opts.GetServerName().c_str(),
                                 opts.GetConnectionType(),
                                 opts.GetPort(),
                                 "");
 
-  cout << "rds_open_connection() returns " << ret << endl;
-
   if (ret){
-    show_debug(hnd);
+    rds.ShowError(ret);
     clean_exit(hnd);
   }
-  //cout << "rdsd connection opened." << endl;
+
+  if (opts.GetEnumWanted()) rds.ShowEnumSrc();
+
+  if (opts.GetEventMask() == 0) clean_exit(hnd);
   
   ret = rds_set_event_mask(hnd,opts.GetSourceNum(),opts.GetEventMask());
   if (RDS_OK != ret){
-    show_debug(hnd);
-    cout << "Error: rds_set_event_mask() returns " << ret << endl;
-    if (ret) clean_exit(hnd);
+    rds.ShowError(ret);
+    //show_debug(hnd);
+    clean_exit(hnd);
   }
-  cout << "rds_set_event_mask() returns " << ret << endl;
 
   rds_events_t events;
 
   while (RDS_OK == rds_get_event(hnd,opts.GetSourceNum(),events)){
-    if (events & RDS_EVENT_FLAGS) cout << "RDS_EVENT_FLAGS" << endl;
+    if (events & RDS_EVENT_FLAGS) rds.ShowFlags();
     if (events & RDS_EVENT_PI_CODE) rds.ShowPIcode();
     if (events & RDS_EVENT_PTY_CODE) rds.ShowPTYcode();
     if (events & RDS_EVENT_PROGRAMNAME) rds.ShowProgramName();
@@ -112,8 +131,6 @@ int main(int argc, char *argv[])
     if (events & RDS_EVENT_LAST_RADIOTEXT) rds.ShowLastRadioText();
   }
 
-  cout << "rds_get_event() returns " << ret << endl;
-  
   clean_exit(hnd);
   
   return EXIT_SUCCESS;

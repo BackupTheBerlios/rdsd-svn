@@ -563,6 +563,10 @@ bool RDSconnection::process_msg()
 		        }
 		        else state=ssErr;
 		      }
+		      else if ((ch=='e')&&(cmd_str.size()==0)){
+		        cmd_str.push_back(ch);
+		        state=ssCmd; // handle esrc command
+		      }
 		      else state=ssErr;
 		      break;
       case ssCmd:     if ((ch>='a')&&(ch<='z')) cmd_str.push_back(ch);

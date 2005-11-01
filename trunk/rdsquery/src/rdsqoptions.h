@@ -33,12 +33,14 @@ public:
     RdsqOptions();
     ~RdsqOptions();
     bool ProcessCmdLine(int argc, char *argv[]);
+    void ShowOptions();
     int GetRecordCount() { return record_count; }
     int GetConnectionType() { return conn_type; }
     const string& GetServerName() { return server_name; }
     int GetPort() { return tcpip_port; }
     int GetSourceNum() { return source_num; }
     rds_events_t GetEventMask() { return event_mask; }
+    bool GetEnumWanted() { return have_opt_e; }
 private:
   int record_count;
   int conn_type;
@@ -46,6 +48,7 @@ private:
   int tcpip_port;
   int source_num;
   rds_events_t event_mask;
+  bool have_opt_e;
   bool have_opt_s;
   bool have_opt_p;
   bool have_opt_t;

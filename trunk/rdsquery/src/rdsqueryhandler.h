@@ -63,6 +63,8 @@ public:
 	void SetShowDebugOnError(bool Show) {show_debug_on_error = Show; } 
 	bool GetShowDebugOnError() {return show_debug_on_error; }
 	void ShowError(int rds_err_num);
+	void ShowEnumSrc();
+	void ShowFlags();
 	void ShowPIcode();
 	void ShowPTYcode();
 	void ShowProgramName();

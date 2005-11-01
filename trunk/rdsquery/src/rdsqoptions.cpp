@@ -33,6 +33,7 @@ RdsqOptions::RdsqOptions()
   tcpip_port = 4321;
   source_num = 0;
   event_mask = 0;
+  have_opt_e = false;
   have_opt_s = false;
   have_opt_t = false;
   have_opt_u = false;
@@ -50,13 +51,19 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
   int itmp;
   rds_events_t evnt_tmp;
 
-  while ( (option = getopt(argc,argv,"c:hvs:u:t:")) != EOF ) {
+  while ( (option = getopt(argc,argv,"c:ehvn:s:u:t:p:")) != EOF ) {
     switch (option){
       case 'c' :  if (try_str_to_int(optarg,itmp)) record_count=itmp;
                   else { show_usage(); return false; }
                   break;
+      case 'e' :  have_opt_e = true;
+                  break;
+      case 'n' :  if (try_str_to_int(optarg,itmp)) source_num=itmp;
+                  else { show_usage(); return false; }
+                  break;
       case 's' :  if (have_opt_u){ show_usage(); return false; }
 		  server_name = optarg;
+		  conn_type = CONN_TYPE_TCPIP;
       		  have_opt_s = true;
                   break;
       case 'p' :  if (have_opt_u){ show_usage(); return false; }
@@ -67,6 +74,7 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
       case 'u' :  if (have_opt_s){ show_usage(); return false; }
 		  if (have_opt_p){ show_usage(); return false; }
 		  server_name = optarg;
+		  conn_type = CONN_TYPE_UNIX;
       		  have_opt_u = true;
                   break;
       case 't' :  if (try_parse_types(optarg,evnt_tmp)) event_mask=evnt_tmp;
@@ -83,9 +91,22 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
                   return false;
     }
   }
-  if (! have_opt_t) { show_usage(); return false; }
+  if ((! have_opt_t)&&(! have_opt_e)) { show_usage(); return false; }
   if ((have_opt_p)&&(!have_opt_s)){ show_usage(); return false; }
   return true;
+}
+
+void RdsqOptions::ShowOptions()
+{
+  cerr << "Mode: ";
+  if (conn_type == CONN_TYPE_TCPIP) cerr << "TCP/IP";
+  else if (conn_type == CONN_TYPE_UNIX) cerr << "UNIX";
+  else cerr << "???";
+  cerr << endl;
+  cerr << "Server: " << server_name << endl;
+  if (conn_type == CONN_TYPE_TCPIP) cerr << "Port: " << tcpip_port << endl;
+  cerr << "Record count: " << record_count << endl;
+  cerr << "Source: " << source_num << endl;
 }
 
 
