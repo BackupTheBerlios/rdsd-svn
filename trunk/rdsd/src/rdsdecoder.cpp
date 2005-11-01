@@ -68,6 +68,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     if (! is_valid_block(b2)) continue;
     int blocknum = b2 & 0x03; // What's the differnce between "Received Offset"
                               // and "Offset Name" in V4L2 spec ???
+    if (blocknum == 4) blocknum = 2; // Treat C' as C
     if (blocknum == last_block_num) continue;
     last_block_num = blocknum;
     if (blocknum == next_expected_block){
