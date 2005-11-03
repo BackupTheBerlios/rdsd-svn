@@ -1,22 +1,23 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   koch@hjk-az.de                                                        *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/*****************************************************************************
+ *   This file is part of librds, a library to fetch data from the           *
+ *   Radio Data System Daemon (rdsd). See http://rdsd.berlios.de             * 
+ *   Copyright (C) 2005 by Hans J. Koch                                      *
+ *   hjkoch@users.berlios.de                                                 *
+ *                                                                           *
+ *   This library is free software; you can redistribute it and/or           *
+ *   modify it under the terms of the GNU Lesser General Public              *
+ *   License as published by the Free Software Foundation; either            *
+ *   version 2.1 of the License, or (at your option) any later version.      *
+ *                                                                           * 
+ *   This library is distributed in the hope that it will be useful,         *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       *
+ *   Lesser General Public License for more details.                         *
+ *                                                                           *
+ *   You should have received a copy of the GNU Lesser General Public        *    
+ *   License along with this library; if not, write to the Free Software     *
+ *   Foundation,Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA *
+ *****************************************************************************/
 
 #ifndef LIBRDS_H
 #define LIBRDS_H
@@ -140,10 +141,11 @@ const rds_events_t RDS_EVENT_FLAGS          = 0x0001; //!< One of the RDS flags 
 const rds_events_t RDS_EVENT_PI_CODE        = 0x0002; //!< The program identification code has changed
 const rds_events_t RDS_EVENT_PTY_CODE       = 0x0004; //!< The program type code has changed
 const rds_events_t RDS_EVENT_PROGRAMNAME    = 0x0008; //!< The program name has changed
-const rds_events_t RDS_EVENT_DATETIME       = 0x0010; //!< A new date/time info was received
-const rds_events_t RDS_EVENT_RADIOTEXT      = 0x0020; //!< New characters were added to the radiotext buffer
-const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0040; //!< A radio text string was completed
-const rds_events_t RDS_EVENT_TMC            = 0x0080; //!< The TMC message list was modified
+const rds_events_t RDS_EVENT_UTCDATETIME    = 0x0010; //!< A new UTC date/time is available
+const rds_events_t RDS_EVENT_LOCDATETIME    = 0x0020; //!< A new local date/time is available
+const rds_events_t RDS_EVENT_RADIOTEXT      = 0x0040; //!< New characters were added to the radiotext buffer
+const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0080; //!< A radio text string was completed
+const rds_events_t RDS_EVENT_TMC            = 0x0100; //!< The TMC message list was modified
 
 //! Constants for debug levels
 /*!

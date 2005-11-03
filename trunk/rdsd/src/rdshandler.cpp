@@ -120,10 +120,10 @@ int RDShandler::WorkLoop()
         RDSclient* cli = clientlist[i];
         if (cli){
 	  // Check if we have events the client is waiting for
-          if (cli->CheckEvents(&srclist)<0) delete_client(cli);
+          if (cli->CheckEvents()<0) delete_client(cli);
 	  // Did the client send a new request ?
           else if (FD_ISSET(cli->GetFd(),&tmp_fds)){
-	    if (cli->Process(&srclist)<0) delete_client(cli); 
+	    if (cli->Process()<0) delete_client(cli); 
 	  }
         }
       }
@@ -315,6 +315,7 @@ void RDShandler::accept_unix_client()
     RDSclient* cli = new RDSclient;
     if (cli){
       cli->SetLogHandler(&log);
+      cli->SetSrcList(&srclist);
       cli->SetFd(fd);
       clientlist.push_back(cli);
       FD_SET(fd,&all_fds);
@@ -338,6 +339,7 @@ void RDShandler::accept_inet_client()
     RDSclient* cli = new RDSclient;
     if (cli){
       cli->SetLogHandler(&log);
+      cli->SetSrcList(&srclist);
       cli->SetFd(fd);
       clientlist.push_back(cli);
       FD_SET(fd,&all_fds);

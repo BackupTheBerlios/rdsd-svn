@@ -26,6 +26,7 @@ RDSclient::RDSclient()
 {
   fd = -1;
   log = 0;
+  srclist = 0;
 }
 
 
@@ -37,6 +38,11 @@ RDSclient::~RDSclient()
 void RDSclient::SetLogHandler(LogHandler *loghandler)
 {
   log = loghandler;
+}
+
+void RDSclient::SetSrcList(RDSsourceList* psrclist)
+{
+  srclist = psrclist;
 }
 
 int RDSclient::GetFd()
@@ -56,11 +62,13 @@ void RDSclient::Close()
 }
 
 
-int RDSclient::CheckEvents(RDSsourceList* psrclist)
+int RDSclient::CheckEvents()
 {
+  if (! srclist) return -1;
+  
   int i=0;
-  while (i<psrclist->size()){
-    RDSsource* src = psrclist->at(i);
+  while (i<srclist->size()){
+    RDSsource* src = srclist->at(i);
     if (src){
       rds_events_t requested_events = (src->Data.GetAllEvents() & get_event_mask(i));
       if (requested_events){
@@ -77,8 +85,9 @@ int RDSclient::CheckEvents(RDSsourceList* psrclist)
 
 
 // Process() returns 0 on success, -1 if the client closes, or an error from enum RdsdError
-int RDSclient::Process(RDSsourceList* psrclist)
+int RDSclient::Process()
 {
+  if (! srclist) return -1;
   vector<char>buf(128);
   int bytes_read = read(fd,&buf[0],128);
   if (bytes_read == 0) return -1;
@@ -87,7 +96,7 @@ int RDSclient::Process(RDSsourceList* psrclist)
     while (i<bytes_read){
       switch (buf[i]){
         case 10 :
-	case 13 :  if (!cmd.empty()) ExecCmd(psrclist);
+	case 13 :  if (!cmd.empty()) ExecCmd();
 		   break;
 	default: cmd += buf[i];
 	         if (cmd.size()>100) cmd.clear(); //prevent overflow attacks...  
@@ -98,8 +107,9 @@ int RDSclient::Process(RDSsourceList* psrclist)
   return 0;
 }
 
-int RDSclient::ExecCmd(RDSsourceList* psrclist)
+int RDSclient::ExecCmd()
 {
+  if (! srclist) return -1;
   int src_num;
   string cmd_str;
   long param;
@@ -108,15 +118,15 @@ int RDSclient::ExecCmd(RDSsourceList* psrclist)
   uint i;
   ostringstream msg;
   RDSsource* src=0;
-  if ((src_num>=0)&&((uint)src_num<psrclist->size())){
-    src = psrclist->at(src_num);
+  if ((src_num>=0)&&((uint)src_num<srclist->size())){
+    src = srclist->at(src_num);
   }
   
   if (cmd_str=="esrc"){
     msg << "esrc" << endl;
     i=0;
-    while (i<psrclist->size()){
-      RDSsource* tmpsrc=psrclist->at(i);
+    while (i<srclist->size()){
+      RDSsource* tmpsrc=srclist->at(i);
       if (tmpsrc) msg << i << ":" << tmpsrc->GetName() << endl;
       ++i;
     }
@@ -179,6 +189,7 @@ int RDSclient::ExecCmd(RDSsourceList* psrclist)
   msg << "." << endl;
   text_to_send = text_to_send + msg.str();
   send_text();
+  if ((cmd_str=="sevnt")&&(src)) CheckEvents(); // Trigger events after mask is set.
   cmd.clear();
   return 0;
 }

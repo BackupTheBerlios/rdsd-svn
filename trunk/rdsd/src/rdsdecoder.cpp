@@ -61,11 +61,14 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
   uint i=0;
   int index;
   while (i<Buf->size()){
-    int b0 = Buf->at(i);
-    int b1 = Buf->at(i+1);
-    int b2 = Buf->at(i+2);
+    int b0 = Buf->at(i);    // LSB
+    int b1 = Buf->at(i+1);  // MSB
+    int b2 = Buf->at(i+2);  // Status
     i+=3;
-    if (! is_valid_block(b2)) continue;
+    if (! is_valid_block(b2)){
+      next_expected_block = 0;
+      continue;
+    }
     int blocknum = b2 & 0x03; // What's the differnce between "Received Offset"
                               // and "Offset Name" in V4L2 spec ???
     if (blocknum == 4) blocknum = 2; // Treat C' as C
@@ -147,11 +150,12 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 				  
 	        }
                 break;
-      }
-      if (++next_expected_block > 3) next_expected_block = 0;
-    }
+      } //switch
+      next_expected_block = blocknum+1;
+      if (next_expected_block > 3) next_expected_block = 0; // We might have to modify this for RBDS... 
+    } //if (blocknum == next_expected_block)...
     else next_expected_block = 0;
-  }
+  } //while
 }
 
 rds_flags_t RDSdecoder::GetRDSFlags()
@@ -245,8 +249,8 @@ void RDSdecoder::set_pty_code(int new_code)
 
 void RDSdecoder::set_prog_name(int first_index, char c1, char c2)
 {
+  if (first_index == 6) set_event(RDS_EVENT_PROGRAMNAME);
   if ((program_name[first_index] != c1)||(program_name[first_index+1] != c2)){
-    set_event(RDS_EVENT_PROGRAMNAME);
     program_name[first_index]   = c1;
     program_name[first_index+1] = c2;
   }
@@ -273,7 +277,7 @@ void RDSdecoder::set_last_radiotext()
     radio_text_buf[i] = '\r';
     ++i;
   }
-  //cout << temp << endl;
+  
   if (temp != last_radio_text){
     last_radio_text = temp;
     set_event(RDS_EVENT_LAST_RADIOTEXT);
@@ -350,8 +354,11 @@ void RDSdecoder::set_datetime_strings()
   locss << ":00";
 
   local_datetime_str = locss.str();
+  
+  cout << "Local date/time: " << local_datetime_str << endl;
 
-  set_event(RDS_EVENT_DATETIME);
+  set_event(RDS_EVENT_UTCDATETIME);
+  set_event(RDS_EVENT_LOCDATETIME);
 }
 
 

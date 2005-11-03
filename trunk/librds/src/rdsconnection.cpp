@@ -1,22 +1,23 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   koch@hjk-az.de                                                        *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/*****************************************************************************
+ *   This file is part of librds, a library to fetch data from the           *
+ *   Radio Data System Daemon (rdsd). See http://rdsd.berlios.de             * 
+ *   Copyright (C) 2005 by Hans J. Koch                                      *
+ *   hjkoch@users.berlios.de                                                 *
+ *                                                                           *
+ *   This library is free software; you can redistribute it and/or           *
+ *   modify it under the terms of the GNU Lesser General Public              *
+ *   License as published by the Free Software Foundation; either            *
+ *   version 2.1 of the License, or (at your option) any later version.      *
+ *                                                                           * 
+ *   This library is distributed in the hope that it will be useful,         *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       *
+ *   Lesser General Public License for more details.                         *
+ *                                                                           *
+ *   You should have received a copy of the GNU Lesser General Public        *    
+ *   License along with this library; if not, write to the Free Software     *
+ *   Foundation,Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA *
+ *****************************************************************************/
 #include "rdsconnection.h"
 #include <netdb.h>
 #include <sys/stat.h>
@@ -653,13 +654,11 @@ bool RDSconnection::process_event_msg()
   if (event_code & RDS_EVENT_PI_CODE)        send_command(src,"picode","");
   if (event_code & RDS_EVENT_PTY_CODE)       send_command(src,"ptype","");
   if (event_code & RDS_EVENT_PROGRAMNAME)    send_command(src,"pname","");
-  if (event_code & RDS_EVENT_DATETIME){
-                                             send_command(src,"utcdt","");
-                                             send_command(src,"locdt","");
-  }
+  if (event_code & RDS_EVENT_UTCDATETIME)    send_command(src,"utcdt","");
+  if (event_code & RDS_EVENT_LOCDATETIME)    send_command(src,"locdt","");
   if (event_code & RDS_EVENT_RADIOTEXT)      send_command(src,"rtxt","");
   if (event_code & RDS_EVENT_LAST_RADIOTEXT) send_command(src,"lrtxt","");
-
+  if (event_code & RDS_EVENT_TMC)            send_command(src,"tmc","");
   return true;
 }
 

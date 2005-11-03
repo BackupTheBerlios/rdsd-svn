@@ -156,8 +156,8 @@ bool RdsqOptions::try_parse_types(char *s, rds_events_t &result)
         case RDS_CMD_PI_CODE       : result |= RDS_EVENT_PI_CODE; break;
         case RDS_CMD_PTY_CODE      : result |= RDS_EVENT_PTY_CODE; break;
         case RDS_CMD_PROGRAMNAME   : result |= RDS_EVENT_PROGRAMNAME; break;
-        case RDS_CMD_LOCDATETIME   : result |= RDS_EVENT_DATETIME; break;
-        case RDS_CMD_UTCDATETIME   : result |= RDS_EVENT_DATETIME; break;
+	case RDS_CMD_UTCDATETIME   : result |= RDS_EVENT_UTCDATETIME; break;
+        case RDS_CMD_LOCDATETIME   : result |= RDS_EVENT_LOCDATETIME; break;
         case RDS_CMD_RADIOTEXT     : result |= RDS_EVENT_RADIOTEXT; break;
         case RDS_CMD_LAST_RADIOTEXT: result |= RDS_EVENT_LAST_RADIOTEXT; break;
         case RDS_CMD_TMC           : result |= RDS_EVENT_TMC; break;

@@ -39,18 +39,20 @@ public:
   RDSclient();
   ~RDSclient();
   void SetLogHandler(LogHandler *loghandler);
+  void SetSrcList(RDSsourceList* psrclist);
   int GetFd();
   void SetFd(int NewFd);
   void Close();
-  int CheckEvents(RDSsourceList* psrclist);
-  int Process(RDSsourceList* psrclist);
+  int CheckEvents();
+  int Process();
 private:
   int fd;
   string cmd;
   string text_to_send;
   LogHandler *log;
+  RDSsourceList* srclist;
   vector<rds_events_t> event_masks;
-  int ExecCmd(RDSsourceList* psrclist);
+  int ExecCmd();
   void split_cmd(int& src_num, string& cmd_str, long& param, bool& par_valid);
   bool send_text();
   rds_events_t get_event_mask(int src_num);

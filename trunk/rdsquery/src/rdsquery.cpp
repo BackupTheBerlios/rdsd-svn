@@ -126,7 +126,8 @@ int main(int argc, char *argv[])
     if (events & RDS_EVENT_PI_CODE) rds.ShowPIcode();
     if (events & RDS_EVENT_PTY_CODE) rds.ShowPTYcode();
     if (events & RDS_EVENT_PROGRAMNAME) rds.ShowProgramName();
-    if (events & RDS_EVENT_DATETIME) rds.ShowLocalDateTime();
+    if (events & RDS_EVENT_UTCDATETIME) rds.ShowUTCdateTime();
+    if (events & RDS_EVENT_LOCDATETIME) rds.ShowLocalDateTime();
     if (events & RDS_EVENT_RADIOTEXT) rds.ShowRadioText();
     if (events & RDS_EVENT_LAST_RADIOTEXT) rds.ShowLastRadioText();
   }
