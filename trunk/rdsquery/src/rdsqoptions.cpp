@@ -35,6 +35,7 @@ RdsqOptions::RdsqOptions()
   event_mask = 0;
   have_opt_e = false;
   have_opt_s = false;
+  have_opt_p = false;
   have_opt_t = false;
   have_opt_u = false;
 }
@@ -87,7 +88,8 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
       case 'v' :  show_version();
                   exit(0);
                   break;
-      default  :  show_usage();
+      default  :  cout << "unknown option -" << option << endl;
+                  show_usage();
                   return false;
     }
   }
