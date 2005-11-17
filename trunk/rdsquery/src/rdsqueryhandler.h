@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   koch@users.berlios.de                                                *
+ *   hjkoch@users.berlios.de                                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *

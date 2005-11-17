@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   koch@users.berlios.de                                               *
+ *   hjkoch@users.berlios.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -55,12 +55,20 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
   while ( (option = getopt(argc,argv,"c:ehvn:s:u:t:p:")) != EOF ) {
     switch (option){
       case 'c' :  if (try_str_to_int(optarg,itmp)) record_count=itmp;
-                  else { show_usage(); return false; }
+                  else {
+                    cerr << "Illegal or missing argument for option -c." << endl;
+                    show_usage();
+                    return false;
+                  }
                   break;
       case 'e' :  have_opt_e = true;
                   break;
       case 'n' :  if (try_str_to_int(optarg,itmp)) source_num=itmp;
-                  else { show_usage(); return false; }
+                  else {
+                    cerr << "Illegal or missing argument for option -n." << endl;
+                    show_usage();
+                    return false;
+                  }
                   break;
       case 's' :  if (have_opt_u){ show_usage(); return false; }
 		  server_name = optarg;
@@ -69,7 +77,11 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
                   break;
       case 'p' :  if (have_opt_u){ show_usage(); return false; }
 		  if (try_str_to_int(optarg,itmp)) tcpip_port=itmp;
-                  else { show_usage(); return false; }
+                  else {
+                    cerr << "Illegal or missing argument for option -p." << endl;
+                    show_usage();
+                    return false;
+                  }
              	  have_opt_p = true;
       		  break;
       case 'u' :  if (have_opt_s){ show_usage(); return false; }
@@ -79,7 +91,11 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
       		  have_opt_u = true;
                   break;
       case 't' :  if (try_parse_types(optarg,evnt_tmp)) event_mask=evnt_tmp;
-      		  else { show_usage(); return false; }
+      		  else {
+      		    cerr << "Illegal or missing argument for option -t." << endl;
+      		    show_usage();
+      		    return false;
+      		  }
       		  have_opt_t = true;
                   break;
       case 'h' :  show_usage();
@@ -88,7 +104,7 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
       case 'v' :  show_version();
                   exit(0);
                   break;
-      default  :  cout << "unknown option -" << option << endl;
+      default  :  cerr << "Unknown option -" << option << endl;
                   show_usage();
                   return false;
     }
@@ -114,13 +130,13 @@ void RdsqOptions::ShowOptions()
 
 void RdsqOptions::show_usage()
 {
-  cout << "Usage:" << endl;
-  cout << "(TODO...)" << endl;
+  cerr << "Usage:" << endl;
+  cerr << "(TODO...)" << endl;
 }
 
 void RdsqOptions::show_version()
 {
-  cout << "0.0.1" << endl;
+  cout << "0.0.1" << endl; /* FIXME */
 }
 
 bool RdsqOptions::try_str_to_int(char *s, int &result)

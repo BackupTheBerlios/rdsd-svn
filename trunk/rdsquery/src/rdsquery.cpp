@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   koch@users.berlios.de                                               *
+ *   hjkoch@users.berlios.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <vector>
 #include <csignal>
+#include <sstream>
 #include "rdsqoptions.h"
 #include "rdsqueryhandler.h"
 
@@ -37,6 +38,7 @@
 using namespace std;
 
 RDSConnectionHandle hnd = 0;
+string my_unix_sock = "";
 
 void show_debug(RDSConnectionHandle hnd)
 {
@@ -55,6 +57,7 @@ void clean_exit(RDSConnectionHandle hnd)
 {
   rds_close_connection(hnd);
   rds_delete_connection_object(hnd);
+  remove(my_unix_sock.c_str());
   cerr << "Exiting." << endl;
   exit(0);
 }
@@ -97,11 +100,15 @@ int main(int argc, char *argv[])
 
   if (ret) rds.ShowError(ret);
 
+  ostringstream oss;
+  oss << "/var/tmp/rdsquery" << getpid() << ".sock";
+  my_unix_sock = oss.str();
+
   ret = rds_open_connection(hnd,
                                 opts.GetServerName().c_str(),
                                 opts.GetConnectionType(),
                                 opts.GetPort(),
-                                "");
+                                my_unix_sock.c_str());
 
   if (ret){
     rds.ShowError(ret);

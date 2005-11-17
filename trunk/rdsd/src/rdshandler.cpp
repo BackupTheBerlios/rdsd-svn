@@ -34,6 +34,8 @@ RDShandler::RDShandler()
   tcpip_sock_fd = -1;
   maxfd = -1;
   pid_file_name = "/var/tmp/rdsd.pid";
+  unix_sock_name = "/var/tmp/rdsd.sock";
+  tcpip_port = 4321;
 }
 
 
@@ -161,8 +163,6 @@ void RDShandler::clear_clientlist()
 
 int RDShandler::init_global()
 {
-  unix_sock_name = "";
-  tcpip_port = 0;
   for (int sectno=0; sectno<conf.GetSectionCount(); ++sectno){
     ConfSection *sect = conf.GetSection(sectno);
     if (sect->GetName() == "global"){
