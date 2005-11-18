@@ -21,6 +21,7 @@
 #define STDRDSQUERYHANDLER_H
 
 #include <string>
+#include <vector>
 #include <librds.h>
 
 namespace std {
@@ -62,6 +63,8 @@ public:
 	int GetSourceNum() { return src_num; }
 	void SetShowDebugOnError(bool Show) {show_debug_on_error = Show; } 
 	bool GetShowDebugOnError() {return show_debug_on_error; }
+	void InitRecordCounters(rds_events_t events, int count);
+	bool DecRecordCounters(rds_events_t events);
 	void ShowError(int rds_err_num);
 	void ShowEnumSrc();
 	void ShowFlags();
@@ -74,6 +77,8 @@ public:
 	void ShowUTCdateTime();
 private:
 	RDSConnectionHandle handle;
+	vector<int> event_counts;
+	bool infinite_record_count;
 	int src_num;
 	bool show_debug_on_error;
 	void show_debug();

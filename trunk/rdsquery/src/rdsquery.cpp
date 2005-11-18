@@ -126,6 +126,8 @@ int main(int argc, char *argv[])
     clean_exit(hnd);
   }
 
+  rds.InitRecordCounters(opts.GetEventMask(),opts.GetRecordCount());
+
   rds_events_t events;
 
   while (RDS_OK == rds_get_event(hnd,opts.GetSourceNum(),events)){
@@ -137,6 +139,7 @@ int main(int argc, char *argv[])
     if (events & RDS_EVENT_LOCDATETIME) rds.ShowLocalDateTime();
     if (events & RDS_EVENT_RADIOTEXT) rds.ShowRadioText();
     if (events & RDS_EVENT_LAST_RADIOTEXT) rds.ShowLastRadioText();
+    if (! rds.DecRecordCounters(events)) break;
   }
 
   clean_exit(hnd);

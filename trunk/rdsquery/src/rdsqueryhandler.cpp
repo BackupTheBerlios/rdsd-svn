@@ -20,7 +20,6 @@
 #include "rdsqueryhandler.h"
 #include <iostream>
 #include <cstdlib>
-#include <vector>
 
 namespace std {
 
@@ -29,11 +28,44 @@ RdsQueryHandler::RdsQueryHandler()
   handle = 0;
   src_num = -1;
   show_debug_on_error = true;
+  event_counts.resize(sizeof(rds_events_t)*8,0);
+  infinite_record_count = false;
 }
 
 
 RdsQueryHandler::~RdsQueryHandler()
 {
+}
+
+void RdsQueryHandler::InitRecordCounters(rds_events_t events, int count)
+{
+  infinite_record_count = (count == 0);
+  int i = 0;
+  rds_events_t mask = 1;
+  int bit_count = sizeof(rds_events_t)*8;
+  while (i<bit_count){
+    if (events & mask) event_counts[i]=count; else event_counts[i]=0;
+    mask = (mask << 1);
+    ++i;
+  }
+}
+
+bool RdsQueryHandler::DecRecordCounters(rds_events_t events)
+{
+  if (infinite_record_count) return true;
+  int i = 0;
+  rds_events_t mask = 1;
+  int bit_count = sizeof(rds_events_t)*8;
+  bool result = false;
+  while (i<bit_count){
+    if (events & mask){
+      if (event_counts[i]>0) event_counts[i] = event_counts[i]-1;
+    }
+    if (event_counts[i]>0) result = true;
+    mask = (mask << 1);
+    ++i;
+  }
+  return result;
 }
 
 void RdsQueryHandler::ShowError(int rds_err_num)
