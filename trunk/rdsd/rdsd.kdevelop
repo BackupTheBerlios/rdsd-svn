@@ -184,4 +184,28 @@
     </codecompletion>
     <references/>
   </kdevcppsupport>
+  <dist>
+    <custom>false</custom>
+    <bzip>true</bzip>
+    <archname></archname>
+    <appname>rdsd</appname>
+    <version>0.0.1</version>
+    <release></release>
+    <vendor>Hans J. Koch</vendor>
+    <licence>GPL</licence>
+    <summary>Radio Data System Daemon</summary>
+    <group></group>
+    <packager>Hans J. Koch</packager>
+    <description></description>
+    <changelog></changelog>
+    <devpackage>false</devpackage>
+    <docspackage>false</docspackage>
+    <appicon>false</appicon>
+    <arch>0</arch>
+    <genHTML>false</genHTML>
+    <useRPM>false</useRPM>
+    <ftpkde>false</ftpkde>
+    <appskde>false</appskde>
+    <url></url>
+  </dist>
 </kdevelop>

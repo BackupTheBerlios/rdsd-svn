@@ -150,6 +150,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
                      break;
       default: break;
     } //switch
+    group.Clear();
   } //while
 }
 
