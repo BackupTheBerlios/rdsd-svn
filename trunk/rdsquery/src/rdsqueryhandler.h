@@ -75,6 +75,7 @@ public:
 	void ShowLastRadioText();
 	void ShowLocalDateTime();
 	void ShowUTCdateTime();
+	void ShowGroupStatistics();
 private:
 	RDSConnectionHandle handle;
 	vector<int> event_counts;

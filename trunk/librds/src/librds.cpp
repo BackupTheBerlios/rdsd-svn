@@ -182,9 +182,14 @@ int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t &evnt_mask
 }
 
 /*!
+  This is the main event polling function. It will return if one or more of the
+  events set with rds_set_event_mask() are signaled. You can then call the
+  corresponding query function for each bit that is set in the parameter "events".
   
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param events This variable will receive the events that occured since the last
+                call to rds_get_event().
   \return RDS_OK on success,
 */
 int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t &events)
@@ -194,9 +199,11 @@ int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t &events)
 }
 
 /*!
-
+  Get some single bit RDS flags. See the definition of rds_flags_t in
+  librds.h for details.
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param flags Variable to receive the current status of the flags.
   \return RDS_OK on success,
 */
 int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t &flags)
@@ -206,9 +213,12 @@ int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t &flags)
 }
 
 /*!
-
+  Get the current program type information. The program type tells you what kind
+  of program a station broadcasts, e.g. news, pop music, sports, etc.
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param pty_code Variable to receive the program type code. Note that different countries
+                  might use different codes.
   \return RDS_OK on success,
 */
 int rds_get_pty_code(RDSConnectionHandle hnd, int src, int &pty_code)
@@ -218,9 +228,11 @@ int rds_get_pty_code(RDSConnectionHandle hnd, int src, int &pty_code)
 }
 
 /*!
-
+  Get the current program identification code. This is sent very often (in each
+  group) and can be used for fast station identification.
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param pi_code Variable to receive the current PI code.
   \return RDS_OK on success,
 */
 int rds_get_pi_code(RDSConnectionHandle hnd, int src, int &pi_code)
@@ -230,9 +242,10 @@ int rds_get_pi_code(RDSConnectionHandle hnd, int src, int &pi_code)
 }
 
 /*!
-
+  Get the current program name. It can be up to 8 characters long.
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param buf Pointer to a buffer that has a size of at least 9 characters (8+trailing zero).
   \return RDS_OK on success,
 */
 int rds_get_program_name(RDSConnectionHandle hnd, int src, char* buf)
@@ -242,9 +255,12 @@ int rds_get_program_name(RDSConnectionHandle hnd, int src, char* buf)
 }
 
 /*!
-
+  Get the current radio text buffer. The text is not neccessarily complete. Use this function
+  if you want to show your users how the string slowly builds up. Radio text can be up to
+  64 characters. if you need complete radio text strings, use rds_get_last_radiotext().
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param buf Pointer to a buffer that can hold at least 65 characters (64, zero terminated).
   \return RDS_OK on success,
 */
 int rds_get_radiotext(RDSConnectionHandle hnd, int src, char* buf)
@@ -254,9 +270,11 @@ int rds_get_radiotext(RDSConnectionHandle hnd, int src, char* buf)
 }
 
 /*!
-
+  Get the last complete radio text string. Use this function if you're only interested
+  in complete strings and cannot use rds_get_radiotext().
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param buf Pointer to a buffer that can hold at least 65 characters (64, zero terminated).
   \return RDS_OK on success,
 */
 int rds_get_last_radiotext(RDSConnectionHandle hnd, int src, char* buf)
@@ -266,9 +284,12 @@ int rds_get_last_radiotext(RDSConnectionHandle hnd, int src, char* buf)
 }
 
 /*!
-
+  Get the last RDS date/time (UTC). Note that this is broadcast only once every
+  full minute.
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param buf Pointer to a buffer to receive the date/time string. A size of 256 bytes
+             should always be enough for this buffer.
   \return RDS_OK on success,
 */
 int rds_get_utc_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
@@ -278,9 +299,12 @@ int rds_get_utc_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
 }
 
 /*!
-
+  Get the last RDS date/time (local time). Note that this is broadcast only once every
+  full minute.
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param buf Pointer to a buffer to receive the date/time string. A size of 256 bytes
+             should always be enough for this buffer.
   \return RDS_OK on success,
 */
 int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
@@ -290,9 +314,62 @@ int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
 }
 
 /*!
-  Get the TMC message buffer or query the required buffer size.
+  Get the TMC message buffer or query the required buffer size. If buf and/or bufsize
+  is zero, bufsize will receive the required size. If buf and bufsize are non-zero,
+  TMC messages will be written to buf.
+  \param hnd A valid handle returned by rds_create_connection_object().
+  \param src A valid source number, one of those returned by rds_enum_sources().
+  \param buf Pointer to a buffer to which the result should be written.
+  \param bufsize Size of the buffer. Results will be truncated if the buffer is too small.
+  \return RDS_OK on success,
 */
 int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
 {
   return RDS_NOT_IMPLEMENTED;
+}
+
+/*!
+  Get the alternative frequencies buffer or query the required buffer size. If buf
+  and/or bufsize is zero, bufsize will receive the required size.
+  \param hnd A valid handle returned by rds_create_connection_object().
+  \param src A valid source number, one of those returned by rds_enum_sources().
+  \return RDS_OK on success,
+*/
+int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
+{
+  return RDS_NOT_IMPLEMENTED;
+}
+
+/*!
+  Get the current receiver frequency of a V4L2 radio source.
+  \param hnd A valid handle returned by rds_create_connection_object().
+  \param src A valid source number, one of those returned by rds_enum_sources().
+  \return RDS_OK on success,
+*/
+int rds_get_rx_frequency(RDSConnectionHandle hnd, int src, double &frequency)
+{
+  return RDS_NOT_IMPLEMENTED;
+}
+
+/*!
+  Set the current receiver frequency of a V4L2 radio source.
+  \param hnd A valid handle returned by rds_create_connection_object().
+  \param src A valid source number, one of those returned by rds_enum_sources().
+  \return RDS_OK on success,
+*/
+int rds_set_rx_frequency(RDSConnectionHandle hnd, int src, double frequency)
+{
+  return RDS_NOT_IMPLEMENTED;
+}
+
+/*!
+  Get the RDS group statistics buffer or query the required buffer size.
+  \param hnd A valid handle returned by rds_create_connection_object().
+  \param src A valid source number, one of those returned by rds_enum_sources().
+  \return RDS_OK on success,
+*/
+int rds_get_group_stat_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetGroupStatisticsBuffer(src,buf,bufsize);
 }

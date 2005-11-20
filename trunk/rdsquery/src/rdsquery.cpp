@@ -139,6 +139,7 @@ int main(int argc, char *argv[])
     if (events & RDS_EVENT_LOCDATETIME) rds.ShowLocalDateTime();
     if (events & RDS_EVENT_RADIOTEXT) rds.ShowRadioText();
     if (events & RDS_EVENT_LAST_RADIOTEXT) rds.ShowLastRadioText();
+    if (events & RDS_EVENT_GROUP_STAT) rds.ShowGroupStatistics();
     if (! rds.DecRecordCounters(events)) break;
   }
 

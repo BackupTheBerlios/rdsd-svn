@@ -17,53 +17,42 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef STDCONFVALUE_H
-#define STDCONFVALUE_H
+#ifndef STDRDSGROUP_H
+#define STDRDSGROUP_H
 
-#include <string>
+#include <vector>
 
 namespace std {
 
-/**
-Class to store one value from a configuration file. The value is initially a string. 
-The class provides methods to convert to/from other data types.
+enum RDSGroupType {GROUP_0A=0,GROUP_0B,GROUP_1A,GROUP_1B,GROUP_2A,GROUP_2B,
+                   GROUP_3A,GROUP_3B,GROUP_4A,GROUP_4B,GROUP_5A,GROUP_5B,
+		   GROUP_6A,GROUP_6B,GROUP_7A,GROUP_7B,GROUP_8A,GROUP_8B,
+		   GROUP_9A,GROUP_9B,GROUP_10A,GROUP_10B,GROUP_11A,GROUP_11B,
+		   GROUP_12A,GROUP_12B,GROUP_13A,GROUP_13B,GROUP_14A,GROUP_14B,
+		   GROUP_15A,GROUP_15B,GROUP_UNKNOWN};
 
+enum GroupStatus {GS_EMPTY, GS_INCOMPLETE, GS_ERROR, GS_COMPLETE};
+
+/**
 @author Hans J. Koch
 */
-class ConfValue{
+class RDSgroup{
 public:
-    ConfValue();
-    ~ConfValue();
-    bool IsSet();
-    const string& GetName();
-    void SetName(string newname);
-    
-    const string& GetString(bool &valid);
-    int GetInt(bool &valid);
-    double GetDouble(bool &valid);
-    bool GetBool(bool &valid);
-    
-    string GetStringDef(string Default);
-    int GetIntDef(int Default);
-    double GetDoubleDef(double Default);
-    bool GetBoolDef(bool Default);
-    
-    void SetString(string newvalue);
-    void SetInt(int newvalue);
-    void SetDouble(double newvalue);
-    void SetBool(bool newvalue);
+  RDSgroup();
+  ~RDSgroup();
+  void Clear();
+  void AddBlock(unsigned char b0, unsigned char b1, unsigned char b2);
+  GroupStatus GetGroupStatus();
+  RDSGroupType GetGroupType();
+  int GetByte(int blocknum, int bytenum);
 private:
-    string varname;
-    string valstr;
-    bool is_set;
-    string int2string(int num);
-    string dbl2string(double num);
-    string bool2string(bool val);
-    int string2int(string sval, bool &valid);
-    double string2double(string sval, bool &valid);
-    bool string2bool(string sval, bool &valid);
+  vector<unsigned char> byte_buf;
+  GroupStatus group_status;
+  RDSGroupType group_type;
+  int next_expected_block;
+  int last_block_num;
 };
 
-};
+}
 
 #endif

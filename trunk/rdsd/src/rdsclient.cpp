@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   koch@hjk-az.de                                                *
+ *   hjkoch@users.berlios.de                                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -181,6 +181,10 @@ int RDSclient::ExecCmd()
   else if (cmd_str=="locdt"){
     msg << src_num << ":locdt" << endl;
     if (src) msg << src->Data.GetLocalDateTimeString() << endl;
+  }
+  else if (cmd_str=="gstat"){
+    msg << src_num << ":gstat" << endl;
+    if (src) msg << src->Data.GetGroupStatistics() << endl;
   }
   else{
     msg << "#ERROR: Illegal command <" << cmd << ">" << endl;

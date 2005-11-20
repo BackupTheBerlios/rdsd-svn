@@ -58,6 +58,8 @@ enum RdsCmdNums {
   RDS_CMD_RADIOTEXT,
   RDS_CMD_LAST_RADIOTEXT,
   RDS_CMD_TMC,
+  RDS_CMD_ALT_FREQ,
+  RDS_CMD_GROUP_STAT,
   RDS_CMD_COUNT   //!< Dummy value to determine the command count.
 };
 
@@ -71,8 +73,8 @@ enum RdsCmdNums {
 static const char* RdsCommands[RDS_CMD_COUNT] = {
 	"none",
 	"esrc",
-	"srxfre",
-	"grxfre",
+	"srxf",
+	"grxf",
 	"sevnt",
 	"gevnt",
 	"rflags",
@@ -84,6 +86,8 @@ static const char* RdsCommands[RDS_CMD_COUNT] = {
 	"rtxt",
 	"lrtxt",
 	"tmc",
+	"aflst",
+	"gstat",
 };
 
 //! Error codes returned by librds API functions
@@ -111,6 +115,7 @@ enum LibRdsErr {
   RDS_REQUEST_TIMEOUT,       //!< There was no response from rdsd within the time limit
   RDS_UNEXPECTED_RESPONSE,   //!< The response from rdsd is not what was expected
   RDS_ILLEGAL_TIMEOUT,       //!< Attempt to set a timeout value that is too big or too small
+  RDS_NO_RADIO_SOURCE,       //!< Attempt to get/set the RX frequency of a source that is no radio.
   RDS_NOT_IMPLEMENTED	     //!< The requested feature is not implemented (yet).
 }; 
 
@@ -146,6 +151,7 @@ const rds_events_t RDS_EVENT_LOCDATETIME    = 0x0020; //!< A new local date/time
 const rds_events_t RDS_EVENT_RADIOTEXT      = 0x0040; //!< New characters were added to the radiotext buffer
 const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0080; //!< A radio text string was completed
 const rds_events_t RDS_EVENT_TMC            = 0x0100; //!< The TMC message list was modified
+const rds_events_t RDS_EVENT_GROUP_STAT     = 0x0200; //!< The group statistics were updated
 
 //! Constants for debug levels
 /*!
@@ -208,6 +214,14 @@ int rds_get_utc_datetime_string(RDSConnectionHandle hnd, int src, char* buf);
 int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf);
 //! Get the TMC message buffer or query the required buffer size.
 int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize);
+//! Get the alternative frequencies buffer or query the required buffer size.
+int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize);
+//! Get the current receiver frequency of a V4L2 radio source.
+int rds_get_rx_frequency(RDSConnectionHandle hnd, int src, double &frequency);
+//! Set the current receiver frequency of a V4L2 radio source.
+int rds_set_rx_frequency(RDSConnectionHandle hnd, int src, double frequency);
+//! Get the RDS group statistics buffer or query the required buffer size.
+int rds_get_group_stat_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize);
 }
 
 #endif

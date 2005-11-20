@@ -193,10 +193,34 @@ void RdsQueryHandler::ShowUTCdateTime()
   }
 }
 
+void RdsQueryHandler::ShowGroupStatistics()
+{
+  size_t bufsize=0;
+  int ret = rds_get_group_stat_buffer(handle,src_num,0,bufsize);
+  if (ret){
+    ShowError(ret);
+    return;
+  }
+  if (bufsize>0){
+    vector<char> buf(bufsize);
+    ret = rds_get_group_stat_buffer(handle,src_num,&buf[0],bufsize);
+    if (ret){
+      ShowError(ret);
+      return;
+    }
+    string s(buf.begin(),buf.begin()+bufsize);
+    cout << s << endl;
+  }
+}
+
 void RdsQueryHandler::show_debug()
 {
   unsigned int buf_size = 0;
-  rds_get_debug_text(handle,0,buf_size); // query required size
+  int ret = rds_get_debug_text(handle,0,buf_size); // query required size
+  if (ret){
+    ShowError(ret);
+    return;
+  }
   if (buf_size>0){
     vector<char> buf(buf_size);
     rds_get_debug_text(handle,&buf[0],buf_size);

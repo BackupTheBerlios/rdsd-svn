@@ -17,91 +17,79 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "loghandler.h"
-#include <iostream>
-#include <fstream>
-#include <ctime>
+#include "rdsgroup.h"
 
 namespace std {
 
-LogHandler::LogHandler()
+RDSgroup::RDSgroup()
 {
-  log_level = LL_WARN;
-  log_filename_valid = false;
+  byte_buf.resize(8);
+  Clear();
 }
 
-LogHandler::~LogHandler()
+
+RDSgroup::~RDSgroup()
 {
 }
 
-LogLevel LogHandler::GetLogLevel()
+void RDSgroup::Clear()
 {
-  return log_level;
+  for (int i=0; i<byte_buf.size(); i++) byte_buf[i] = 0;
+  group_status = GS_EMPTY;
+  group_type = GROUP_UNKNOWN;
+  next_expected_block = 0;
+  last_block_num = -1;
 }
 
-void LogHandler::SetLogLevel(LogLevel NewLL)
+void RDSgroup::AddBlock(unsigned char b0, unsigned char b1, unsigned char b2)
 {
-  log_level = NewLL;
-}
-
-int LogHandler::SetLogFilename(string filename)
-{
-  log_filename = "";
-  ofstream test(filename.c_str(),ios::app);
-  if (!test){
-    log_filename_valid = false;
-    return -1;
+  if ((b2 & 0x80)!=0){ //erroneous block
+    group_status = GS_ERROR;
+    return;
   }
-  log_filename = filename;
-  log_filename_valid = true;
-  return 0;
-}
-
-string LogHandler::GetLogFilename()
-{
-  return log_filename;
-}
-
-bool LogHandler::GetLogFileValid()
-{
-  return log_filename_valid;
-}
-
-bool LogHandler::GetConsoleLog()
-{
-  return console_log;
-}
-
-void LogHandler::SetConsoleLog(bool DoConsoleLog)
-{
-  console_log = DoConsoleLog;
-}
-
-bool LogHandler::GetFileLog()
-{
-  return file_log;
-}
-
-void LogHandler::SetFileLog(bool DoFileLog)
-{
-  file_log = DoFileLog;
-}
-
-void LogHandler::LogMsg(LogLevel prio, string msg)
-{
-  if ((prio <= log_level)&&(! log_filename.empty())){
-    time_t td;
-    time(&td);
-    string timestr = ctime(&td);
-    timestr[timestr.length()-1]=' ';
-    if (console_log) cerr << timestr << msg << endl;
-    if (file_log){
-      ofstream logfile(log_filename.c_str(),ios::app);
-      if (logfile) logfile << timestr << msg << endl;
-    }
+  int blocknum = b2 & 0x07; // What's the differnce between "Received Offset"
+                            // and "Offset Name" in V4L2 spec ???
+  if (blocknum == 4) blocknum = 2; // Treat C' as C
+  if ((blocknum == 5)||(blocknum==6)) return; // ignore E Blocks
+  if (blocknum == 7){ //invalid block
+    group_status = GS_ERROR;
+    return;
   }
+  if (blocknum == last_block_num) return;
+  if ((group_status == GS_EMPTY)&&(blocknum != 0)) return;
+  if (blocknum != next_expected_block){
+    group_status = GS_ERROR;
+    return;
+  }
+
+  byte_buf[2*blocknum]   = b0; //LSB
+  byte_buf[2*blocknum+1] = b1; //MSB
+  group_status = GS_INCOMPLETE;
+
+  if (blocknum == 1){
+    group_type = (RDSGroupType)(b1 >> 3);
+  }
+
+  last_block_num = blocknum;
+  next_expected_block = blocknum+1;
+  if (next_expected_block > 3) group_status = GS_COMPLETE;
+  return;
+}
+
+GroupStatus RDSgroup::GetGroupStatus()
+{
+  return group_status;
+}
+
+RDSGroupType RDSgroup::GetGroupType()
+{
+  return group_type;
+}
+
+int RDSgroup::GetByte(int blocknum, int bytenum)
+{
+  return byte_buf[2*blocknum+bytenum];
 }
 
 
-
-};
+}
