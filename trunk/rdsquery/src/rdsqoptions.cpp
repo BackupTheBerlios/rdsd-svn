@@ -179,6 +179,7 @@ bool RdsqOptions::try_parse_types(char *s, rds_events_t &result)
         case RDS_CMD_RADIOTEXT     : result |= RDS_EVENT_RADIOTEXT; break;
         case RDS_CMD_LAST_RADIOTEXT: result |= RDS_EVENT_LAST_RADIOTEXT; break;
         case RDS_CMD_TMC           : result |= RDS_EVENT_TMC; break;
+        case RDS_CMD_ALT_FREQ      : result |= RDS_EVENT_AF_LIST; break;
         case RDS_CMD_GROUP_STAT    : result |= RDS_EVENT_GROUP_STAT; break;
       }
       cmd = "";

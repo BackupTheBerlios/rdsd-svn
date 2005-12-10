@@ -20,6 +20,7 @@
 #include "altfreqlist.h"
 
 #include <sstream>
+#include <iostream> //test only
 
 namespace std {
 
@@ -82,7 +83,7 @@ void AltFreqList::AddGroup(RDSgroup& group)
 const string& AltFreqList::AsString()
 {
   ostringstream oss;
-  oss << "AF list, count = " << freq_list.size() << endl;
+  oss << "AF list, count = " << freq_list.size() << endl; // Test only!
   for (int i=0; i<freq_list.size(); i++){
     if (freq_list[i].IsVariant) oss << "V "; else oss << "S ";
     oss << freq_list[i].Freq << endl;
@@ -137,9 +138,10 @@ int AltFreqList::freq_in_khz(int b)
 bool AltFreqList::add_freq(int freq, bool is_variant)
 {
   if (freq_counter>0){
-    freq_list.resize(freq_list.size()+1);
-    freq_list[freq_list.size()-1].Freq = freq;
-    freq_list[freq_list.size()-1].IsVariant = is_variant;
+    AltFreq AF;
+    AF.Freq = freq;
+    AF.IsVariant = is_variant;
+    freq_list.push_back(AF);
     freq_counter--;
     if (freq_counter==0) status = AS_COMPLETE;
     else status = AS_INCOMPLETE;

@@ -37,8 +37,16 @@ enum AFListStatus {AS_EMPTY, AS_INCOMPLETE, AS_ERROR, AS_COMPLETE};
 class AltFreq{
 public:
   AltFreq() :Freq(-1), IsVariant(false) {}
+  AltFreq(const AltFreq& other) : Freq(other.Freq), IsVariant(other.IsVariant) {}
   int Freq;
   bool IsVariant;
+  AltFreq& operator=(const AltFreq& rhs)
+  {
+    if (this == &rhs) return *this;
+    Freq = rhs.Freq;
+    IsVariant = rhs.IsVariant;
+    return *this;
+  }
 };
 
 class AltFreqList{
@@ -51,6 +59,7 @@ public:
   const string& AsString();
   AltFreqList& operator=(const AltFreqList& rhs)
   {
+    if (this == &rhs) return *this;
     list_string = rhs.list_string;
     status = rhs.status;
     first_freq = rhs.first_freq;
