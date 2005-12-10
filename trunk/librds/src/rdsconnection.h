@@ -74,6 +74,10 @@ public:
   int GetUTCDateTimeString(unsigned int src, char* buf);
   //! Get local date and time as a string.
   int GetLocalDateTimeString(unsigned int src, char* buf);
+  //! Get the TMC message buffer.
+  int GetTMCBuffer(unsigned int src, char* buf, size_t& buf_size);
+  //! Get the alternative frequency list buffer.
+  int GetAltFreqBuffer(unsigned int src, char* buf, size_t& buf_size);
   //! Get the RDS group statistics buffer.
   int GetGroupStatisticsBuffer(unsigned int src, char* buf, size_t& buf_size);
 private:
@@ -89,6 +93,10 @@ private:
   unsigned int next_debug_line;
   unsigned int max_debug_lines;
   unsigned long timeout_time_msec;
+  string tmc_data;
+  bool have_tmc_data;
+  string aflist_data;
+  bool have_aflist_data;
   string group_stat_data;
   bool have_group_stat_data;
   unsigned long get_millisec_time();

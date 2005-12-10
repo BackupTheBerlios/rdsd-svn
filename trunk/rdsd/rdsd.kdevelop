@@ -187,17 +187,17 @@
   <dist>
     <custom>false</custom>
     <bzip>true</bzip>
-    <archname></archname>
+    <archname/>
     <appname>rdsd</appname>
     <version>0.0.1</version>
-    <release></release>
+    <release/>
     <vendor>Hans J. Koch</vendor>
     <licence>GPL</licence>
     <summary>Radio Data System Daemon</summary>
-    <group></group>
+    <group/>
     <packager>Hans J. Koch</packager>
-    <description></description>
-    <changelog></changelog>
+    <description/>
+    <changelog/>
     <devpackage>false</devpackage>
     <docspackage>false</docspackage>
     <appicon>false</appicon>
@@ -206,6 +206,6 @@
     <useRPM>false</useRPM>
     <ftpkde>false</ftpkde>
     <appskde>false</appskde>
-    <url></url>
+    <url/>
   </dist>
 </kdevelop>

@@ -86,7 +86,7 @@ static const char* RdsCommands[RDS_CMD_COUNT] = {
 	"rtxt",
 	"lrtxt",
 	"tmc",
-	"aflst",
+	"aflist",
 	"gstat",
 };
 
@@ -152,6 +152,7 @@ const rds_events_t RDS_EVENT_RADIOTEXT      = 0x0040; //!< New characters were a
 const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0080; //!< A radio text string was completed
 const rds_events_t RDS_EVENT_TMC            = 0x0100; //!< The TMC message list was modified
 const rds_events_t RDS_EVENT_GROUP_STAT     = 0x0200; //!< The group statistics were updated
+const rds_events_t RDS_EVENT_AF_LIST        = 0x0400; //!< An alternative frequency list is ready
 
 //! Constants for debug levels
 /*!

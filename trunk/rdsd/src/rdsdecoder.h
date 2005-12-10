@@ -24,6 +24,7 @@
 #include <string>
 #include <librds.h>
 #include "rdsgroup.h"
+#include "altfreqlist.h"
 
 namespace std {
 
@@ -51,6 +52,8 @@ public:
   const string& GetUTCDateTimeString();
   const string& GetLocalDateTimeString();
   const string& GetGroupStatistics();
+  const string& GetAltFreqList();
+  const string& GetTMCList();
   int GetPIcode();
   int GetPTYcode();
 private:
@@ -58,6 +61,8 @@ private:
   vector<unsigned long> good_group_counters;
   vector<unsigned long> bad_group_counters;
   int group_counters_cnt;
+  AltFreqList AFlist;
+  AltFreqList tmpAFlist;
   rds_events_t events;
   string radio_text_buf;
   string radio_text;

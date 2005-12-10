@@ -325,7 +325,8 @@ int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
 */
 int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
 {
-  return RDS_NOT_IMPLEMENTED;
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetTMCBuffer(src,buf,bufsize);
 }
 
 /*!
@@ -337,7 +338,8 @@ int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufs
 */
 int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
 {
-  return RDS_NOT_IMPLEMENTED;
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetAltFreqBuffer(src,buf,bufsize);
 }
 
 /*!

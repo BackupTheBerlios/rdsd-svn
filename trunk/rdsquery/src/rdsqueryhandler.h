@@ -76,6 +76,8 @@ public:
 	void ShowLocalDateTime();
 	void ShowUTCdateTime();
 	void ShowGroupStatistics();
+	void ShowAltFreqList();
+	void ShowTMCList();
 private:
 	RDSConnectionHandle handle;
 	vector<int> event_counts;

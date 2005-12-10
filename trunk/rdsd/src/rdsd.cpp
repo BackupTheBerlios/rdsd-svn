@@ -98,7 +98,6 @@ static void usage()
   cout << "           -d             : fork and run as daemon." << endl;
   cout << "           -h             : show this help and exit." << endl;
   cout << "           -k             : kill a running rdsd." << endl;
-  cout << "           -r             : ask running rdsd to reload conf file." << endl;
   cout << "           -v             : output version info and exit." << endl;
 }
 

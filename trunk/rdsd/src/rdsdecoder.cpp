@@ -85,7 +85,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
       default: break;
     }
 
-    // At this point, we have a complete RDS group.
+    // At this point, we have a complete, valid RDS group.
     index = group.GetGroupType();
     good_group_counters[index] = good_group_counters[index]+1;
     group_counters_cnt++;
@@ -95,13 +95,13 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     }
     
     // Each group contains the PI code in block 0:
- 
     set_pi_code((group.GetByte(0,1) << 8) | group.GetByte(0,0));
 
     //some other info common in all groups:
-
     set_rds_flag(RDS_FLAG_IS_TP,(group.GetByte(1,1) & 0x04));
     set_pty_code(((group.GetByte(1,1) << 3) & 0x18) | ((group.GetByte(1,0) >> 5) & 0x07));
+
+    //The lower 5 bits of block 1 carry special information in most groups:
     block1_lower5 = (group.GetByte(1,0) & 0x1F);
 
     // The rest is group specific:
@@ -121,6 +121,18 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 			       break;
 		       case 3: set_rds_flag(RDS_FLAG_IS_STEREO,(block1_lower5 & 0x04));
 			       break;
+		     }
+		     if (group.GetGroupType() == GROUP_0A){
+                       tmpAFlist.AddGroup(group);
+                       switch (AFlist.GetStatus()){
+                         case AS_ERROR:    tmpAFlist.Clear();
+                                           break;
+                         case AS_COMPLETE: AFlist = tmpAFlist;
+                                           tmpAFlist.Clear();
+                                           set_event(RDS_EVENT_AF_LIST);
+                                           break;
+                         default: ;
+                       }
 		     }
 		     break;
       case GROUP_2A: set_rds_flag(RDS_FLAG_TEXT_AB,(block1_lower5 & 0x10));
@@ -224,6 +236,16 @@ const string& RDSdecoder::GetGroupStatistics()
   oss << bad_group_counters[32] << endl;
   group_stat_data = oss.str();
   return group_stat_data;
+}
+
+const string& RDSdecoder::GetAltFreqList()
+{
+  return AFlist.AsString();
+}
+
+const string& RDSdecoder::GetTMCList()
+{
+  return program_name; // Just a test, not implemented yet
 }
 
 void RDSdecoder::set_event(rds_events_t evnt)

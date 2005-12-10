@@ -45,6 +45,8 @@ RDSconnection::RDSconnection()
   next_debug_line = 0;
   max_debug_lines = 100;
   timeout_time_msec = 3000; //max. wait time in milliseconds
+  have_tmc_data = false;
+  have_aflist_data = false;
   have_group_stat_data = false;
 }
 
@@ -326,6 +328,66 @@ int RDSconnection::GetLocalDateTimeString(unsigned int src, char* buf)
   if (len > 255) len = 255;
   memcpy(buf,data.c_str(),len);
   buf[len] = 0;
+  return RDS_OK;
+}
+
+int RDSconnection::GetTMCBuffer(unsigned int src, char* buf, size_t& buf_size)
+{
+  string data;
+  int ret;
+  if ((buf==0)||(buf_size==0)){
+    have_tmc_data = false;
+    ret = wait_for_data(src,"tmc",data);
+    if (ret) return ret;
+    tmc_data = data;
+    have_tmc_data = true;
+    buf_size=data.size()+1;
+    return RDS_OK;
+  }
+  else {
+    if (have_tmc_data){
+      data = tmc_data;
+      have_tmc_data = false;
+    }
+    else {
+      ret = wait_for_data(src,"tmc",data);
+      if (ret) return ret;
+    }
+    size_t len = data.size();
+    if (len > (buf_size-1)) len = (buf_size-1);
+    memcpy(buf,data.c_str(),len);
+    buf[len] = 0;
+  }
+  return RDS_OK;
+}
+
+int RDSconnection::GetAltFreqBuffer(unsigned int src, char* buf, size_t& buf_size)
+{
+  string data;
+  int ret;
+  if ((buf==0)||(buf_size==0)){
+    have_aflist_data = false;
+    ret = wait_for_data(src,"aflist",data);
+    if (ret) return ret;
+    aflist_data = data;
+    have_aflist_data = true;
+    buf_size=data.size()+1;
+    return RDS_OK;
+  }
+  else {
+    if (have_aflist_data){
+      data = aflist_data;
+      have_aflist_data = false;
+    }
+    else {
+      ret = wait_for_data(src,"aflist",data);
+      if (ret) return ret;
+    }
+    size_t len = data.size();
+    if (len > (buf_size-1)) len = (buf_size-1);
+    memcpy(buf,data.c_str(),len);
+    buf[len] = 0;
+  }
   return RDS_OK;
 }
 
@@ -690,6 +752,8 @@ bool RDSconnection::process_event_msg()
   if (event_code & RDS_EVENT_RADIOTEXT)      send_command(src,"rtxt","");
   if (event_code & RDS_EVENT_LAST_RADIOTEXT) send_command(src,"lrtxt","");
   if (event_code & RDS_EVENT_TMC)            send_command(src,"tmc","");
+  if (event_code & RDS_EVENT_GROUP_STAT)     send_command(src,"gstat","");
+  if (event_code & RDS_EVENT_AF_LIST)        send_command(src,"aflist","");
   return true;
 }
 

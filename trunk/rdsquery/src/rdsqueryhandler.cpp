@@ -195,6 +195,7 @@ void RdsQueryHandler::ShowUTCdateTime()
 
 void RdsQueryHandler::ShowGroupStatistics()
 {
+  cout << "gstat:" << endl;
   size_t bufsize=0;
   int ret = rds_get_group_stat_buffer(handle,src_num,0,bufsize);
   if (ret){
@@ -204,6 +205,48 @@ void RdsQueryHandler::ShowGroupStatistics()
   if (bufsize>0){
     vector<char> buf(bufsize);
     ret = rds_get_group_stat_buffer(handle,src_num,&buf[0],bufsize);
+    if (ret){
+      ShowError(ret);
+      return;
+    }
+    string s(buf.begin(),buf.begin()+bufsize);
+    cout << s << endl;
+  }
+}
+
+void RdsQueryHandler::ShowAltFreqList()
+{
+  cout << "aflist:" << endl;
+  size_t bufsize=0;
+  int ret = rds_get_af_buffer(handle,src_num,0,bufsize);
+  if (ret){
+    ShowError(ret);
+    return;
+  }
+  if (bufsize>0){
+    vector<char> buf(bufsize);
+    ret = rds_get_af_buffer(handle,src_num,&buf[0],bufsize);
+    if (ret){
+      ShowError(ret);
+      return;
+    }
+    string s(buf.begin(),buf.begin()+bufsize);
+    cout << s << endl;
+  }
+}
+
+void RdsQueryHandler::ShowTMCList()
+{
+  cout << "tmc:" << endl;
+  size_t bufsize=0;
+  int ret = rds_get_tmc_buffer(handle,src_num,0,bufsize);
+  if (ret){
+    ShowError(ret);
+    return;
+  }
+  if (bufsize>0){
+    vector<char> buf(bufsize);
+    ret = rds_get_tmc_buffer(handle,src_num,&buf[0],bufsize);
     if (ret){
       ShowError(ret);
       return;

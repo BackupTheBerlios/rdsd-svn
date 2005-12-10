@@ -186,6 +186,14 @@ int RDSclient::ExecCmd()
     msg << src_num << ":gstat" << endl;
     if (src) msg << src->Data.GetGroupStatistics() << endl;
   }
+  else if (cmd_str=="tmc"){
+    msg << src_num << ":tmc" << endl;
+    if (src) msg << src->Data.GetTMCList() << endl;
+  }
+  else if (cmd_str=="aflist"){
+    msg << src_num << ":aflist" << endl;
+    if (src) msg << src->Data.GetAltFreqList() << endl;
+  }
   else{
     msg << "#ERROR: Illegal command <" << cmd << ">" << endl;
   }
