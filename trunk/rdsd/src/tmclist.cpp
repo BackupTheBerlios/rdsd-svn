@@ -142,6 +142,7 @@ bool TMClist::add_string(const string& tmc_string)
 bool TMClist::check_timeouts()
 {
   bool result = false;
+  /*
   time_t time_now = time(0);
   vector<TMCinfo>::iterator it,it1;
   it = tmc_list.end();
@@ -156,6 +157,7 @@ bool TMClist::check_timeouts()
     }
     else it--;
   }
+  */
   return result;
 }
 
