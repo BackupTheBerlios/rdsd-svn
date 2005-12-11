@@ -22,7 +22,7 @@
 
 #include <string>
 #include <ctime>
-#include <map>
+#include <vector>
 #include "rdsgroup.h"
 
 
@@ -39,12 +39,14 @@ enum TMCtype {TMC_GROUP=0, TMC_SINGLE, TMC_SYSTEM, TMC_TUNING};
 class TMCinfo{
 public:
   TMCinfo() : rx_time(0) {}
-  TMCinfo(const TMCinfo& other) : rx_time(other.rx_time) {}
+  TMCinfo(const TMCinfo& other) : rx_time(other.rx_time), data(other.data) {}
   time_t rx_time;
+  string data;
   TMCinfo& operator=(const TMCinfo& rhs)
   {
     if (this == &rhs) return *this;
     rx_time = rhs.rx_time;
+    data = rhs.data;
     return *this;
   }
 };
@@ -63,7 +65,7 @@ private:
   time_t time_to_live;
   string tmc_provider;
   string list_string;
-  map<string,TMCinfo> tmc_list;
+  vector<TMCinfo> tmc_list;
   bool add_string(const string& tmc_string);
   bool check_timeouts();
 };

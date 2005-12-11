@@ -62,6 +62,8 @@ public:
   int GetRequiredCount() { return required_count; }
   void SetRequiredCount(int new_count);
   bool GetABflag() { return ABflag; }
+  bool GetUseABflag() { return use_ABflag; }
+  void SetUseABflag(bool use_AB) { use_ABflag = use_AB; } 
 private:
   vector<RTchar> RTbuffer;
   string buf_string;
@@ -70,6 +72,7 @@ private:
   RTtype type;
   int required_count;
   bool ABflag;
+  bool use_ABflag;
   void set_type(RTtype new_type);
   void zero_RTbuffer();
   void set_RTbuffer_char(int pos, int new_char);

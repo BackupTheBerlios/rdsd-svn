@@ -25,6 +25,7 @@ RadioText::RadioText()
 {
   Clear();
   ABflag = false;
+  use_ABflag = true;
   required_count = 1;
 }
 
@@ -44,8 +45,11 @@ void RadioText::AddGroup(RDSgroup& group)
   if (group.GetGroupStatus() != GS_COMPLETE) return;
 
   int addr_code = group.GetByte(1,0) & 0x0F;
-  ABflag = group.GetByte(1,0) & 0x10;
-  
+  bool new_ABflag = ((group.GetByte(1,0) & 0x10) != 0);
+  if (ABflag != new_ABflag){
+    ABflag = new_ABflag;
+    if (use_ABflag) zero_RTbuffer();
+  }
   switch (group.GetGroupType()){
     case GROUP_2A: set_type(RTT_2A);
                    set_RTbuffer_char(4*addr_code + 0, group.GetByte(2,1));

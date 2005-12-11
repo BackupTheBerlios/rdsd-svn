@@ -54,11 +54,11 @@ void TMClist::AddGroup(RDSgroup& group)
   switch (type){
     case TMC_GROUP:  oss << "G evt=" << event << " loc=" << location;
                      oss << " ext=" << extent << " CI=" << CI;
-                     oss << " dir=" << direction << "div=" << diversion;
+                     oss << " dir=" << direction << " div=" << diversion;
                      break;
     case TMC_SINGLE: oss << "S evt=" << event << " loc=" << location;
                      oss << " ext=" << extent << " dur=" << duration;
-                     oss << " dir=" << direction << "div=" << diversion;
+                     oss << " dir=" << direction << " div=" << diversion;
                      break;
     case TMC_SYSTEM: oss << "Y ";
                      switch (CI){
@@ -103,9 +103,8 @@ void TMClist::AddGroup(RDSgroup& group)
 const string& TMClist::AsString()
 {
   ostringstream oss;
-  map<string,TMCinfo>::iterator it;
-  for (it=tmc_list.begin(); it != tmc_list.end(); it++){
-    oss << it->first << endl;
+  for (int i=0; i<tmc_list.size(); i++){
+    oss << tmc_list[i].data << endl;
   }
   list_string = oss.str();
   return list_string;
@@ -121,12 +120,22 @@ void TMClist::SetTimeToLive(time_t TTL)
 
 bool TMClist::add_string(const string& tmc_string)
 {
-  bool result = false;
-  map<string,TMCinfo>::iterator it = tmc_list.find(tmc_string);
-  if (it == tmc_list.end()) result = true;
-  TMCinfo info;
-  info.rx_time = time(0);
-  tmc_list[tmc_string] = info;
+  bool result = true;
+  
+  for (int i=0; i<tmc_list.size(); i++){
+    if (tmc_list[i].data == tmc_string){
+      tmc_list[i].rx_time = time(0);
+      result = false;
+      break;
+    }
+  }
+  
+  if (result){
+    TMCinfo info;
+    info.rx_time = time(0);
+    info.data = tmc_string;
+    tmc_list.push_back(info);
+  }
   return result;
 }
 
@@ -134,18 +143,18 @@ bool TMClist::check_timeouts()
 {
   bool result = false;
   time_t time_now = time(0);
-  map<string,TMCinfo>::iterator it,it1;
-  it=tmc_list.begin();
-  while (it != tmc_list.end()){
-    TMCinfo info = it->second;
+  vector<TMCinfo>::iterator it,it1;
+  it = tmc_list.end();
+  while (it != tmc_list.begin()){
+    TMCinfo info = *it;
     if ((time_now - info.rx_time)>time_to_live){
-      it1 = it;
-      it1++;
+      it1=it;
+      it1--;
       tmc_list.erase(it);
       it = it1;
       result = true;
     }
-    else it++;
+    else it--;
   }
   return result;
 }
