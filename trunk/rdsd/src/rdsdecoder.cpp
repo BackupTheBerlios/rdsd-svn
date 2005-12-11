@@ -29,7 +29,6 @@ RDSdecoder::RDSdecoder()
   PIcode = -1;
   PTYcode = -1;
   program_name.resize(8,'\r');
-  radio_text_buf.resize(64,'\r');
   utc_datetime_str   = "2000/1/1 00:00:00";
   local_datetime_str = "2000/1/1 00:00:00";
   tmc_type = TMC_UNKNOWN;
@@ -136,14 +135,21 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 		     }
 		     break;
       case GROUP_2A: set_rds_flag(RDS_FLAG_TEXT_AB,(block1_lower5 & 0x10));
-                     index = (block1_lower5 & 0x0F) << 2;
-		     set_radiotext(index,  group.GetByte(2,1),group.GetByte(2,0));
-		     set_radiotext(index+2,group.GetByte(3,1),group.GetByte(3,0));
+                     radio_text.AddGroup(group);
+                     set_event(RDS_EVENT_RADIOTEXT);
+                     if (radio_text.GetStatus() == RT_COMPLETE){
+                       set_event(RDS_EVENT_LAST_RADIOTEXT);
+                       radio_text.Clear();
+                     }
                      break;
       case GROUP_2B: set_rds_flag(RDS_FLAG_TEXT_AB,(block1_lower5 & 0x10));
                      set_pi_code((group.GetByte(2,1) << 8) | group.GetByte(2,0));
-                     index = (block1_lower5 & 0x0F) << 1;
-		     set_radiotext(index,group.GetByte(3,1),group.GetByte(3,0));
+                     radio_text.AddGroup(group);
+                     set_event(RDS_EVENT_RADIOTEXT);
+                     if (radio_text.GetStatus() == RT_COMPLETE){
+                       set_event(RDS_EVENT_LAST_RADIOTEXT);
+                       radio_text.Clear();
+                     }
                      break;
       case GROUP_4A: jul_date =   ((block1_lower5 & 0x03) << 15)
                                 | (group.GetByte(2,1) << 7) | (group.GetByte(2,0) >> 1);
@@ -173,27 +179,12 @@ rds_flags_t RDSdecoder::GetRDSFlags()
 
 const string& RDSdecoder::GetRadioText()
 {
-  radio_text.clear();
-  bool sth_found = false;
-  int i = 0;
-  while (i < radio_text_buf.size()){
-    if (radio_text_buf[i] == '\r'){
-      if (sth_found) break;
-      else radio_text.push_back(' ');
-    }
-    else{
-      sth_found = true;
-      radio_text.push_back(radio_text_buf[i]); 
-    }
-    ++i;
-  }
-  if(! sth_found) radio_text.clear();
-  return radio_text;
+  return radio_text.GetBuffer();
 }
 
 const string& RDSdecoder::GetLastRadioText()
 {
-  return last_radio_text;
+  return radio_text.GetLastRadioText();
 }
 
 const string& RDSdecoder::GetProgramName()
@@ -287,30 +278,6 @@ void RDSdecoder::set_prog_name(int first_index, char c1, char c2)
     cout << ")" << endl;
     */
   }
-}
-
-void RDSdecoder::set_radiotext(int first_index, char c1, char c2)
-{
-  if (first_index == 0) set_last_radiotext();
-  radio_text_buf[first_index]   = c1;
-  radio_text_buf[first_index+1] = c2;
-  set_event(RDS_EVENT_RADIOTEXT);
-  if ((c1=='\r')||(c2=='\r')) set_last_radiotext();
-}
-
-void RDSdecoder::set_last_radiotext()
-{
-  string temp;
-  int i=0;
-  while (i<radio_text_buf.size()){
-    if (radio_text_buf[i] == '\r') break;
-    temp.push_back(radio_text_buf[i]);
-    radio_text_buf[i] = '\r';
-    ++i;
-  }
-  
-  last_radio_text = temp;
-  set_event(RDS_EVENT_LAST_RADIOTEXT);
 }
 
 void RDSdecoder::set_datetime_strings()

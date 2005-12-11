@@ -48,8 +48,8 @@ void AltFreqList::AddGroup(RDSgroup& group)
   if (  (group.GetGroupStatus() != GS_COMPLETE)
       ||(group.GetGroupType() != GROUP_0A)) return;
 
-  int b0 = group.GetByte(2,0);
-  int b1 = group.GetByte(2,1);
+  int b0 = group.GetByte(2,1); // Byte order OK ???
+  int b1 = group.GetByte(2,0);
   switch (status){
     case AS_EMPTY     : if ((b0>=224)&&(b0<=249)){
                           freq_counter = b0-224;

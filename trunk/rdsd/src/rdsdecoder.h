@@ -25,6 +25,7 @@
 #include <librds.h>
 #include "rdsgroup.h"
 #include "altfreqlist.h"
+#include "radiotext.h"
 
 namespace std {
 
@@ -64,9 +65,7 @@ private:
   AltFreqList AFlist;
   AltFreqList tmpAFlist;
   rds_events_t events;
-  string radio_text_buf;
-  string radio_text;
-  string last_radio_text;
+  RadioText radio_text;
   string program_name;
   string utc_datetime_str;
   string local_datetime_str;
@@ -87,11 +86,7 @@ private:
   void set_pi_code(int new_code);
   void set_pty_code(int new_code);
   void set_prog_name(int first_index, char c1, char c2);
-  void set_radiotext(int first_index, char c1, char c2);
-  void set_last_radiotext();
   void set_datetime_strings();
-
-  
   int block1_lower5;
 };
 
