@@ -91,5 +91,10 @@ int RDSgroup::GetByte(int blocknum, int bytenum)
   return byte_buf[2*blocknum+bytenum];
 }
 
+int RDSgroup::GetWord(int blocknum)
+{
+  return (GetByte(blocknum,1) << 8) | GetByte(blocknum,0);
+}
+
 
 }

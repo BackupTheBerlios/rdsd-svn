@@ -31,7 +31,6 @@ RDSdecoder::RDSdecoder()
   program_name.resize(8,'\r');
   utc_datetime_str   = "2000/1/1 00:00:00";
   local_datetime_str = "2000/1/1 00:00:00";
-  tmc_type = TMC_UNKNOWN;
   good_group_counters.resize(33,0);
   bad_group_counters.resize(33,0);
   group_counters_cnt = 0;
@@ -162,9 +161,8 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 		     if (group.GetByte(3,0) & 0x20) utc_offset = -utc_offset;
 		     set_datetime_strings();
                      break;
-      case GROUP_8A: tmc_type = (TMCtype)((block1_lower5 & 0x18) >> 3);
-                     tmc_event = ((group.GetByte(2,1) & 0x07) << 8) | group.GetByte(2,0);
-                     tmc_location = (group.GetByte(3,1) << 8) | group.GetByte(3,0);
+      case GROUP_8A: tmc_list.AddGroup(group);
+                     if (tmc_list.IsChanged()) set_event(RDS_EVENT_TMC);
                      break;
       default: break;
     } //switch
@@ -236,7 +234,7 @@ const string& RDSdecoder::GetAltFreqList()
 
 const string& RDSdecoder::GetTMCList()
 {
-  return program_name; // Just a test, not implemented yet
+  return tmc_list.AsString();
 }
 
 void RDSdecoder::set_event(rds_events_t evnt)

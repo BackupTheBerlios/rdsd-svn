@@ -17,41 +17,55 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef STDRDSGROUP_H
-#define STDRDSGROUP_H
+#ifndef STDTMCLIST_H
+#define STDTMCLIST_H
 
-#include <vector>
+#include <string>
+#include <ctime>
+#include <map>
+#include "rdsgroup.h"
+
 
 namespace std {
 
-enum RDSGroupType {GROUP_0A=0,GROUP_0B,GROUP_1A,GROUP_1B,GROUP_2A,GROUP_2B,
-                   GROUP_3A,GROUP_3B,GROUP_4A,GROUP_4B,GROUP_5A,GROUP_5B,
-		   GROUP_6A,GROUP_6B,GROUP_7A,GROUP_7B,GROUP_8A,GROUP_8B,
-		   GROUP_9A,GROUP_9B,GROUP_10A,GROUP_10B,GROUP_11A,GROUP_11B,
-		   GROUP_12A,GROUP_12B,GROUP_13A,GROUP_13B,GROUP_14A,GROUP_14B,
-		   GROUP_15A,GROUP_15B,GROUP_UNKNOWN};
-
-enum GroupStatus {GS_EMPTY, GS_INCOMPLETE, GS_ERROR, GS_COMPLETE};
-
 /**
+Class to decode TMC messages.
+
 @author Hans J. Koch
 */
-class RDSgroup{
+
+enum TMCtype {TMC_GROUP=0, TMC_SINGLE, TMC_SYSTEM, TMC_TUNING};
+
+class TMCinfo{
 public:
-  RDSgroup();
-  ~RDSgroup();
-  void Clear();
-  void AddBlock(unsigned char b0, unsigned char b1, unsigned char b2);
-  GroupStatus GetGroupStatus();
-  RDSGroupType GetGroupType();
-  int GetByte(int blocknum, int bytenum);
-  int GetWord(int blocknum);
+  TMCinfo() : rx_time(0) {}
+  TMCinfo(const TMCinfo& other) : rx_time(other.rx_time) {}
+  time_t rx_time;
+  TMCinfo& operator=(const TMCinfo& rhs)
+  {
+    if (this == &rhs) return *this;
+    rx_time = rhs.rx_time;
+    return *this;
+  }
+};
+
+class TMClist{
+public:
+  TMClist();
+  ~TMClist();
+  void AddGroup(RDSgroup& group);
+  const string& AsString();
+  bool IsChanged() { return is_changed; }
+  time_t GetTimeToLive() { return time_to_live; }
+  void SetTimeToLive(time_t TTL);
 private:
-  vector<unsigned char> byte_buf;
-  GroupStatus group_status;
-  RDSGroupType group_type;
-  int next_expected_block;
-  int last_block_num;
+  bool is_changed;
+  time_t time_to_live;
+  string tmc_provider;
+  string list_string;
+  map<string,TMCinfo> tmc_list;
+  bool add_string(const string& tmc_string);
+  bool check_timeouts();
 };
 
 }

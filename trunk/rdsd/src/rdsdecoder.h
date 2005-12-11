@@ -26,6 +26,7 @@
 #include "rdsgroup.h"
 #include "altfreqlist.h"
 #include "radiotext.h"
+#include "tmclist.h"
 
 namespace std {
 
@@ -34,8 +35,6 @@ This class is used to decode raw RDS data received from a RDS source.
 
 @author Hans J. Koch
 */
-
-enum TMCtype {TMC_GROUP,TMC_SINGLE,TMC_SYSTEM,TMC_TUNING,TMC_UNKNOWN};
 
 typedef vector<unsigned char> CharBuf;
 
@@ -66,6 +65,7 @@ private:
   AltFreqList tmpAFlist;
   rds_events_t events;
   RadioText radio_text;
+  TMClist tmc_list;
   string program_name;
   string utc_datetime_str;
   string local_datetime_str;
@@ -76,9 +76,6 @@ private:
   int utc_hour;
   int utc_minute;
   int utc_offset;
-  TMCtype tmc_type;
-  int tmc_event;
-  int tmc_location;
   rds_flags_t rds_flags;
   
   void set_event(rds_events_t evnt);
