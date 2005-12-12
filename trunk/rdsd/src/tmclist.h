@@ -22,7 +22,7 @@
 
 #include <string>
 #include <ctime>
-#include <vector>
+#include <list>
 #include "rdsgroup.h"
 
 
@@ -65,7 +65,7 @@ private:
   time_t time_to_live;
   string tmc_provider;
   string list_string;
-  vector<TMCinfo> tmc_list;
+  list<TMCinfo> tmc_list;
   bool add_string(const string& tmc_string);
   bool check_timeouts();
 };

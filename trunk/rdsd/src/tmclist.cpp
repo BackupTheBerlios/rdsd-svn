@@ -39,7 +39,7 @@ void TMClist::AddGroup(RDSgroup& group)
 {
   if (group.GetGroupStatus() != GS_COMPLETE) return;
 
-  TMCtype type = (TMCtype)((group.GetByte(1,0) & 0x1F) >> 3);
+  TMCtype type = (TMCtype)((group.GetByte(1,0) & 0x18) >> 3);
   int duration = group.GetByte(1,0) & 0x07;
   int CI = duration;
   int event = group.GetWord(2) & 0x7FF;
@@ -51,6 +51,7 @@ void TMClist::AddGroup(RDSgroup& group)
   int GSI = (group.GetByte(2,1) & 0x30) >> 4;
   int frequency = ((group.GetWord(2) & 0xFFF) << 16)+group.GetWord(3);
   ostringstream oss;
+  int i;
   switch (type){
     case TMC_GROUP:  oss << "G evt=" << event << " loc=" << location;
                      oss << " ext=" << extent << " CI=" << CI;
@@ -65,7 +66,13 @@ void TMClist::AddGroup(RDSgroup& group)
                        case 0:
                        case 1:
                        case 2:
-                       case 3: oss << "CI=" << CI;
+                       case 3: oss << "CI=" << CI << " ";
+                               for (i=1; i<=3; ++i){
+                                 oss.setf(ios::hex,ios::basefield);
+                                 oss.width(4);
+                                 oss.fill('0');
+                                 oss << group.GetWord(i) << " ";
+                               }
                                break;
                        case 4: tmc_provider[0]=group.GetByte(2,1);
                                tmc_provider[1]=group.GetByte(2,0);
@@ -92,7 +99,13 @@ void TMClist::AddGroup(RDSgroup& group)
                        case 4:
                        case 5:
                        case 6:
-                       case 7:oss << "CI=" << CI;
+                       case 7: oss << "CI=" << CI << " ";
+                               for (i=1; i<=3; ++i){
+                                 oss.setf(ios::hex,ios::basefield);
+                                 oss.width(4);
+                                 oss.fill('0');
+                                 oss << group.GetWord(i) << " ";
+                               }
                      }
                      break;
   }
@@ -103,8 +116,9 @@ void TMClist::AddGroup(RDSgroup& group)
 const string& TMClist::AsString()
 {
   ostringstream oss;
-  for (int i=0; i<tmc_list.size(); i++){
-    oss << tmc_list[i].data << endl;
+  list<TMCinfo>::iterator it;
+  for (it=tmc_list.begin(); it != tmc_list.end(); ++it){
+    oss << (*it).data << endl;
   }
   list_string = oss.str();
   return list_string;
@@ -122,9 +136,10 @@ bool TMClist::add_string(const string& tmc_string)
 {
   bool result = true;
   
-  for (int i=0; i<tmc_list.size(); i++){
-    if (tmc_list[i].data == tmc_string){
-      tmc_list[i].rx_time = time(0);
+  list<TMCinfo>::iterator it;
+  for (it=tmc_list.begin(); it != tmc_list.end(); ++it){
+    if ((*it).data == tmc_string){
+      (*it).rx_time = time(0);
       result = false;
       break;
     }
@@ -142,22 +157,22 @@ bool TMClist::add_string(const string& tmc_string)
 bool TMClist::check_timeouts()
 {
   bool result = false;
-  /*
+  
   time_t time_now = time(0);
-  vector<TMCinfo>::iterator it,it1;
-  it = tmc_list.end();
-  while (it != tmc_list.begin()){
+  list<TMCinfo>::iterator it,it1,itend;
+  it = --tmc_list.end();
+  itend = --tmc_list.begin();
+  while (it != itend){
     TMCinfo info = *it;
     if ((time_now - info.rx_time)>time_to_live){
       it1=it;
-      it1--;
+      --it1;
       tmc_list.erase(it);
       it = it1;
       result = true;
     }
-    else it--;
+    else --it;
   }
-  */
   return result;
 }
 
