@@ -42,7 +42,6 @@ public:
   int Init();
   int WorkLoop();
   void Terminate();
-  void Reload();
   LogHandler log;
   const string& GetPidFilename();
 private:

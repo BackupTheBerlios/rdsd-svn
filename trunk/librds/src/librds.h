@@ -116,6 +116,8 @@ enum LibRdsErr {
   RDS_UNEXPECTED_RESPONSE,   //!< The response from rdsd is not what was expected
   RDS_ILLEGAL_TIMEOUT,       //!< Attempt to set a timeout value that is too big or too small
   RDS_NO_RADIO_SOURCE,       //!< Attempt to get/set the RX frequency of a source that is no radio.
+  RDS_RADIO_IOCTL,           //!< An ioctl() for the radio device file failed.
+  RDS_ILLEGAL_TUNER_FREQ,    //!< An illegal value for the tuner frequency was given.
   RDS_NOT_IMPLEMENTED	     //!< The requested feature is not implemented (yet).
 }; 
 

@@ -40,14 +40,12 @@ static void sig_proc(int signr)
     case SIGTERM:
                  handler.Terminate();
 		 break;
-    case SIGHUP: handler.Reload();
-                 break; 
   }
 }
 
 static int check_pid_file(string pid_file_name)
 {
-  int fd,ret;
+  int fd;
   FILE *fil;
   int oldpid;
   if ((fil = fopen(pid_file_name.c_str(),"r"))!=0){
@@ -105,13 +103,12 @@ string conf_file_name = "/etc/rdsd.conf";
 int  running_pid = -1;
 bool do_daemonize = false;
 bool do_kill_rdsd = false;
-bool do_reload_rdsd = false;
 
 
 static void parse_cmdline(int argc, char* argv[])
 {
   int opt;
-  while ((opt = getopt(argc,argv,"c:dhkrv")) != -1){
+  while ((opt = getopt(argc,argv,"c:dhkv")) != -1){
     switch (opt) {
       case 'c':  conf_file_name = optarg;
                  break;
@@ -121,8 +118,6 @@ static void parse_cmdline(int argc, char* argv[])
                  clean_exit(0);
                  break;
       case 'k':  do_kill_rdsd = true;
-                 break;
-      case 'r':  do_reload_rdsd = true;
                  break;
       case 'v':  cout << VERSION << endl;
                  clean_exit(0);
@@ -164,18 +159,9 @@ int main(int argc, char* argv[])
     clean_exit(1);   
   }
     
-  if ((do_reload_rdsd || do_kill_rdsd) && (running_pid<=0)){
+  if ((do_kill_rdsd) && (running_pid<=0)){
     handler.log.LogMsg(LL_ERR,"Cannot find PID (no rdsd running ?).");
     clean_exit(1);
-  }
-  
-  if (do_reload_rdsd){
-    if (kill(running_pid,SIGHUP)<0){
-      handler.log.LogMsg(LL_ERR,"Cannot send SIGHUP (stale rdsd.pid file ?).");
-      clean_exit(1);
-    }
-    handler.log.LogMsg(LL_INFO,"SIGHUP sent to rdsd.");
-    clean_exit(0);
   }
   
   if (do_kill_rdsd){

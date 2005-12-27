@@ -15,7 +15,7 @@
     <absoluteprojectpath>false</absoluteprojectpath>
     <description></description>
     <secondaryLanguages/>
-    <versioncontrol></versioncontrol>
+    <versioncontrol/>
   </general>
   <kdevautoproject>
     <general>
@@ -27,7 +27,7 @@
       <terminal>true</terminal>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
-      <programargs></programargs>
+      <programargs/>
       <autocompile>true</autocompile>
       <envvars/>
     </run>
@@ -59,6 +59,20 @@
       </debug>
       <default>
         <envvars/>
+        <configargs></configargs>
+        <builddir></builddir>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
+        <ccompiler>kdevgccoptions</ccompiler>
+        <cxxcompiler>kdevgppoptions</cxxcompiler>
+        <f77compiler>kdevg77options</f77compiler>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags>-Wall</cflags>
+        <cxxflags>-Wall</cxxflags>
+        <f77flags></f77flags>
       </default>
     </configurations>
     <make>
@@ -69,7 +83,7 @@
       <abortonerror>false</abortonerror>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin></makebin>
+      <makebin/>
       <prio>0</prio>
     </make>
   </kdevautoproject>
@@ -142,7 +156,7 @@
     <projectdoc>
       <docsystem>Doxygen-Dokumentation</docsystem>
       <docurl>${APPNAMELC}.tag</docurl>
-      <usermanualurl></usermanualurl>
+      <usermanualurl/>
     </projectdoc>
   </kdevdocumentation>
   <substmap>
@@ -237,7 +251,7 @@
     </display>
   </kdevdebugger>
   <ctagspart>
-    <customArguments></customArguments>
-    <customTagfilePath></customTagfilePath>
+    <customArguments/>
+    <customTagfilePath/>
   </ctagspart>
 </kdevelop>

@@ -52,12 +52,20 @@ public:
   int Open();
   void Close();
   int Process();
+  int SetRadioFreq(int freq_khz);
+  int GetRadioFreq(int &freq_khz);
+  int GetSignalStrength(int &signal_strength);
+  int RadioMute();
+  int RadioUnMute();
   RDSdecoder Data;  
 private:
   string srcname;
   string srcpath;
+  int tuner_freq_khz;
   SourceType src_type;
   int fd;
+  int freq_factor;
+  bool use_v4l1;
   SourceStatus status;
   LogHandler *log;
   void LogMsg(LogLevel prio, string msg);

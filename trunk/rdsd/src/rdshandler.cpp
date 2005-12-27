@@ -139,11 +139,6 @@ void RDShandler::Terminate()
   terminated = true;
 }
 
-void RDShandler::Reload()
-{
-  //TODO
-}
-
 void RDShandler::clear_srclist()
 {
   for (int i=srclist.size()-1; i>=0; --i){
