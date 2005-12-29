@@ -41,6 +41,7 @@ RDSsource::RDSsource()
 
 RDSsource::~RDSsource()
 {
+  Close();
 }
 
 string RDSsource::GetName()
@@ -141,9 +142,10 @@ int RDSsource::Open()
 
 void RDSsource::Close()
 {
-  if (tuner_freq_khz > 0) RadioMute();
-
-  if (fd>=0) close(fd);
+  if (fd>=0){
+    if (tuner_freq_khz > 0) RadioMute();
+    close(fd);
+  }
   fd = -1;
   status = SRCSTAT_CLOSED;
 }
@@ -179,6 +181,8 @@ int RDSsource::Process()
       buf.resize(ret);
       Data.AddBytes(&buf);
       status = SRCSTAT_OK;
+      // RDS_EVENT_RX_FREQ makes only sense if we have a radio device:
+      if (src_type != SRCTYPE_RADIODEV) Data.ClearEvents(RDS_EVENT_RX_FREQ);
     }
     return RDSD_OK;
   }
@@ -238,7 +242,7 @@ int RDSsource::SetRadioFreq(int freq_khz)
   int ret;
   if (use_v4l1){
     ret = ioctl(fd, VIDIOCSFREQ, &ifreq); //V4L1
-    if (ret != 0) return RDS_RADIO_IOCTL;
+    if (ret != 0) return RDSD_RADIO_IOCTL;
   }
   else {
     struct v4l2_frequency freq_struct;
@@ -246,7 +250,7 @@ int RDSsource::SetRadioFreq(int freq_khz)
     freq_struct.tuner = 0; //FIXME: should set this properly...
     freq_struct.frequency = ifreq;
     ret = ioctl(fd, VIDIOC_S_FREQUENCY, &freq_struct); //V4L2
-    if (ret != 0) return RDS_RADIO_IOCTL;
+    if (ret != 0) return RDSD_RADIO_IOCTL;
   }
   return RDS_OK;
 }
@@ -257,14 +261,14 @@ int RDSsource::GetRadioFreq(int &freq_khz)
   int ifreq, ret;
   if (use_v4l1){
     ret = ioctl(fd, VIDIOCGFREQ, &ifreq); //V4L1
-    if (ret != 0) return RDS_RADIO_IOCTL;
+    if (ret != 0) return RDSD_RADIO_IOCTL;
   }
   else {
     struct v4l2_frequency freq_struct;
     memset(&freq_struct,0,sizeof(freq_struct));
     freq_struct.tuner = 0; //FIXME: should set this properly...
     ret = ioctl(fd, VIDIOC_G_FREQUENCY, &freq_struct); //V4L2
-    if (ret != 0) return RDS_RADIO_IOCTL;
+    if (ret != 0) return RDSD_RADIO_IOCTL;
     ifreq = freq_struct.frequency;
   }
   freq_khz = 1000*ifreq/freq_factor;
@@ -279,14 +283,14 @@ int RDSsource::GetSignalStrength(int &signal_strength)
     struct video_tuner vt;
     memset(&vt,0,sizeof(vt));
     ret = ioctl (fd, VIDIOCGTUNER, &vt); //V4L1
-    if (ret != 0) return RDS_RADIO_IOCTL;
+    if (ret != 0) return RDSD_RADIO_IOCTL;
     signal_strength = vt.signal; // 0..65535
   }
   else{
     struct v4l2_tuner tuner_v4l2;
     memset(&tuner_v4l2,0,sizeof(tuner_v4l2));
     ret = ioctl(fd, VIDIOC_G_TUNER, &tuner_v4l2);
-    if (ret != 0) return RDS_RADIO_IOCTL;
+    if (ret != 0) return RDSD_RADIO_IOCTL;
     signal_strength = tuner_v4l2.signal; // 0..65535
   }
   return RDS_OK;
@@ -297,18 +301,18 @@ int RDSsource::RadioMute()
   if (src_type != SRCTYPE_RADIODEV) return RDS_NO_RADIO_SOURCE;
   if (use_v4l1){
     struct video_audio vid_aud;
-    if (ioctl(fd, VIDIOCGAUDIO, &vid_aud)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd, VIDIOCGAUDIO, &vid_aud)) return RDSD_RADIO_IOCTL;
     vid_aud.flags |= VIDEO_AUDIO_MUTE;
-    if (ioctl(fd, VIDIOCSAUDIO, &vid_aud)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd, VIDIOCSAUDIO, &vid_aud)) return RDSD_RADIO_IOCTL;
   }
   else{
     struct v4l2_queryctrl qctrl;
     qctrl.id = V4L2_CID_AUDIO_MUTE;
-    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDSD_RADIO_IOCTL;
     struct v4l2_control ctrl;
     ctrl.id = V4L2_CID_AUDIO_MUTE;
     ctrl.value = qctrl.maximum;
-    if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDSD_RADIO_IOCTL;
   }
   return RDS_OK;
 }
@@ -318,27 +322,27 @@ int RDSsource::RadioUnMute()
   if (src_type != SRCTYPE_RADIODEV) return RDS_NO_RADIO_SOURCE;
   if (use_v4l1){
     struct video_audio vid_aud;
-    if (ioctl(fd, VIDIOCGAUDIO, &vid_aud)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd, VIDIOCGAUDIO, &vid_aud)) return RDSD_RADIO_IOCTL;
     if (vid_aud.volume == 0) vid_aud.volume = 65535;
     vid_aud.flags &= ~VIDEO_AUDIO_MUTE;
-    if (ioctl(fd, VIDIOCSAUDIO, &vid_aud)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd, VIDIOCSAUDIO, &vid_aud)) return RDSD_RADIO_IOCTL;
   }
   else{
     struct v4l2_queryctrl qctrl;
     qctrl.id = V4L2_CID_AUDIO_VOLUME;
-    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDSD_RADIO_IOCTL;
     struct v4l2_control ctrl;
     ctrl.id = V4L2_CID_AUDIO_VOLUME;
-    if (ioctl(fd,VIDIOC_G_CTRL,&ctrl)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_G_CTRL,&ctrl)) return RDSD_RADIO_IOCTL;
     if (ctrl.value == qctrl.minimum){
       ctrl.value = qctrl.maximum;
-      if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDS_RADIO_IOCTL;
+      if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDSD_RADIO_IOCTL;
     }
     qctrl.id = V4L2_CID_AUDIO_MUTE;
-    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDSD_RADIO_IOCTL;
     ctrl.id = V4L2_CID_AUDIO_MUTE;
     ctrl.value = qctrl.minimum;
-    if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDS_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDSD_RADIO_IOCTL;
   }
   return RDS_OK;
 }

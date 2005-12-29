@@ -285,7 +285,7 @@ int RDShandler::init_server()
 
 int RDShandler::open_sources()
 {
-  int i=0;
+  unsigned int i=0;
   while (i < srclist.size()){
     RDSsource* src = srclist[i];
     if (src){

@@ -1,3 +1,28 @@
+librds Installation
+===================
+
+Normally, installation of librds should be fairly simple:
+
+./configure
+make
+make install (as root)
+
+The latter will install librds.so to /usr/local/lib
+and librds.h to /usr/local/include.
+
+If you also want to compile rdsd and/or rdsquery, you will have to
+install librds first, as these applications need to be able to 
+include librds.h at compile time. This will probably also apply to
+other (future) applications that use librds.
+
+NOTE: You might want to add "/usr/local/lib" to your /etc/ld.so.conf
+so that ld is able to find librds.
+
+The following chapter is a standard text that explains other 
+possibilities of the configure/make system. If you have some spare time
+or some unusual wishes, read it :-)
+
+
 Basic Installation
 ==================
 

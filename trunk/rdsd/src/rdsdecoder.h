@@ -44,6 +44,8 @@ public:
   ~RDSdecoder();
   rds_events_t GetAllEvents();
   void SetAllEvents(rds_events_t evts);
+  void AddEvents(rds_events_t evts);
+  void ClearEvents(rds_events_t evts);
   void AddBytes(CharBuf* Buf);
   rds_flags_t GetRDSFlags();
   const string& GetRadioText();
@@ -77,6 +79,7 @@ private:
   int utc_minute;
   int utc_offset;
   rds_flags_t rds_flags;
+  int last_pi_code;
   
   void set_event(rds_events_t evnt);
   void set_rds_flag(rds_flags_t flag, bool new_state);

@@ -80,6 +80,10 @@ public:
   int GetAltFreqBuffer(unsigned int src, char* buf, size_t& buf_size);
   //! Get the RDS group statistics buffer.
   int GetGroupStatisticsBuffer(unsigned int src, char* buf, size_t& buf_size);
+  //! Get the tuner frequency of a V4L radio device.
+  int GetTunerFrequency(unsigned int src, double& freq);
+  //! Set the tuner frequency of a V4L radio device.
+  int SetTunerFrequency(unsigned int src, double freq);
 private:
   RdsdCommandList CmdList;
   int sock_fd;

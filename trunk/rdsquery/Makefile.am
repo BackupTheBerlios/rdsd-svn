@@ -3,3 +3,5 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src
+
+man_MANS = rdsquery.1

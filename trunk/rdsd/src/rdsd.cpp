@@ -40,6 +40,8 @@ static void sig_proc(int signr)
     case SIGTERM:
                  handler.Terminate();
 		 break;
+    case SIGHUP:
+                 break;
   }
 }
 
@@ -95,20 +97,17 @@ static void usage()
   cout << "  Options: -c <file name> : use alternative conf file." << endl;
   cout << "           -d             : fork and run as daemon." << endl;
   cout << "           -h             : show this help and exit." << endl;
-  cout << "           -k             : kill a running rdsd." << endl;
   cout << "           -v             : output version info and exit." << endl;
 }
 
 string conf_file_name = "/etc/rdsd.conf";
 int  running_pid = -1;
 bool do_daemonize = false;
-bool do_kill_rdsd = false;
-
 
 static void parse_cmdline(int argc, char* argv[])
 {
   int opt;
-  while ((opt = getopt(argc,argv,"c:dhkv")) != -1){
+  while ((opt = getopt(argc,argv,"c:dhv")) != -1){
     switch (opt) {
       case 'c':  conf_file_name = optarg;
                  break;
@@ -116,8 +115,6 @@ static void parse_cmdline(int argc, char* argv[])
                  break;
       case 'h':  usage();
                  clean_exit(0);
-                 break;
-      case 'k':  do_kill_rdsd = true;
                  break;
       case 'v':  cout << VERSION << endl;
                  clean_exit(0);
@@ -154,29 +151,11 @@ int main(int argc, char* argv[])
   ret = check_pid_file(handler.GetPidFilename());
   running_pid = (ret>0) ? ret : -1;
 
-  if ((running_pid>0)&&(!do_kill_rdsd)){
+  if (running_pid>0){
     handler.log.LogMsg(LL_EMERG,"Cannot initialize PID file (already running ?).");
-    clean_exit(1);   
-  }
-    
-  if ((do_kill_rdsd) && (running_pid<=0)){
-    handler.log.LogMsg(LL_ERR,"Cannot find PID (no rdsd running ?).");
     clean_exit(1);
   }
-  
-  if (do_kill_rdsd){
-    ostringstream msg;
-    msg << "Killing rdsd (PID=" << running_pid << ") ";
-    if (kill(running_pid,SIGINT)<0){
-      msg << "failed (stale rdsd.pid file ?).";
-      handler.log.LogMsg(LL_ERR,msg.str());
-      clean_exit(1);
-    }
-    msg << "...done.";
-    handler.log.LogMsg(LL_INFO,msg.str());
-    clean_exit(0);
-  }
-    
+
   if (do_daemonize) {
     unlink(handler.GetPidFilename().c_str());
     handler.log.SetConsoleLog(false);

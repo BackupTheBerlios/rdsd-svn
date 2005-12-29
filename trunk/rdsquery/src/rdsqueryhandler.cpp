@@ -256,6 +256,31 @@ void RdsQueryHandler::ShowTMCList()
   }
 }
 
+void RdsQueryHandler::ShowTunerFrequency()
+{
+  cout << "rxfre:";
+  double freq;
+  int ret = rds_get_rx_frequency(handle,src_num,freq);
+  if (ret){
+    ShowError(ret);
+    return;
+  }
+  int freq_khz = (int)(freq/1000.0 + 0.5);
+  cout << freq_khz << endl;
+}
+
+void RdsQueryHandler::ShowSetTunerFrequency(double FreqToSet)
+{
+  cout << "srxfre:";
+  int ret = rds_set_rx_frequency(handle,src_num,FreqToSet);
+  if (ret){
+    ShowError(ret);
+    return;
+  }
+  int freq_khz = (int)(FreqToSet/1000.0 + 0.5);
+  cout << freq_khz << endl;
+}
+
 void RdsQueryHandler::show_debug()
 {
   unsigned int buf_size = 0;

@@ -66,7 +66,7 @@ int RDSclient::CheckEvents()
 {
   if (! srclist) return -1;
   
-  int i=0;
+  unsigned int i=0;
   while (i<srclist->size()){
     RDSsource* src = srclist->at(i);
     if (src){
@@ -135,11 +135,28 @@ int RDSclient::ExecCmd()
     msg << src_num << ":stat" << endl;
     if (src) msg << src->GetStatusStr() << endl;
   }
+  else if (cmd_str=="srxfre"){
+    msg << src_num << ":srxfre" << endl;
+    if (src){
+      if (par_valid){
+        if (src->SetRadioFreq(param) == RDS_OK) msg << "OK" << endl;
+        else msg << "#ERROR: Cannot set tuner frequency.";
+      }
+      else msg << "#ERROR: Invalid parameter." << endl;
+    }
+  }
+  else if (cmd_str=="rxfre"){
+    msg << src_num << ":rxfre" << endl;
+    if (src){
+      int rxfreq;
+      if (src->GetRadioFreq(rxfreq) == RDS_OK) msg << rxfreq << endl;
+    }
+  }
   else if (cmd_str=="sevnt"){
     msg << src_num << ":sevnt" << endl;
     if (src){
       if (par_valid){
-        while (event_masks.size()<=src_num) event_masks.push_back(0);
+        while ((int)event_masks.size()<=src_num) event_masks.push_back(0);
 	event_masks[src_num]=(rds_events_t)param;
 	msg << "OK" << endl;
       } 
@@ -254,7 +271,7 @@ bool RDSclient::send_text()
 
 rds_events_t RDSclient::get_event_mask(int src_num)
 {
-  if ((src_num<0)||(src_num>=event_masks.size())) return 0;
+  if ((src_num<0)||(src_num>=(int)event_masks.size())) return 0;
   return event_masks[src_num];
 }
 

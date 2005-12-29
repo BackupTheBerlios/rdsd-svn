@@ -53,7 +53,31 @@ starts from 0, you can get a list of sources known by rdsd using
 the \-e option. If you don't give this option, 0 is assumed.
 .TP 
 \fB\-t\fR <\fItype1,type2,...\fP>
-The list of data types that rdsquery should retrieve.
+The list of data types that rdsquery should retrieve. Possible types are:
+.IP 
+\fBrflags\fR: Some bitwise coded flags. See librds.h for details.
+.IP 
+\fBpicode\fR: The Program Identifiction code.
+.IP 
+\fBptype\fR: Program type number.
+.IP 
+\fBpname\fR: Program name.
+.IP 
+\fBlocdt\fR: Local date and time.
+.IP 
+\fButcdt\fR: UTC date and time.
+.IP 
+\fBrtxt\fR: Current radio text buffer.
+.IP 
+\fBlrtxt\fR: Last radio text. The last completely received radio text
+string. This is usually what you want if you want to read radio text.
+.IP 
+\fBtmc\fR: TMC (Traffic Message Channel) message list (numerical).
+.IP 
+\fBaflist\fR: List of alternative frequencies.
+.IP 
+\fBgstat\fR: Statistics about received RDS groups.
+
 .TP 
 \fB\-h\fR
 Output some help text.

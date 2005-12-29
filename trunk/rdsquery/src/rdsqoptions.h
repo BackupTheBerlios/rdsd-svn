@@ -41,6 +41,8 @@ public:
     int GetSourceNum() { return source_num; }
     rds_events_t GetEventMask() { return event_mask; }
     bool GetEnumWanted() { return have_opt_e; }
+    bool GetFreqWanted() { return have_opt_f; }
+    double GetFreqToSet() { return freq_to_set; }
 private:
   int record_count;
   int conn_type;
@@ -48,7 +50,9 @@ private:
   int tcpip_port;
   int source_num;
   rds_events_t event_mask;
+  double freq_to_set;
   bool have_opt_e;
+  bool have_opt_f;
   bool have_opt_s;
   bool have_opt_p;
   bool have_opt_t;

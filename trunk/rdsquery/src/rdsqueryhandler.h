@@ -49,7 +49,10 @@ const string RdsErrorStrings[] = {
   "An internal error in the command list. Must never happen!.",
   "There was no response from rdsd within the time limit.",
   "The response from rdsd is not what was expected.",
-  "Attempt to set a timeout value that is too big or too small."
+  "Attempt to set a timeout value that is too big or too small.",
+  "Attempt to get/set the RX frequency of a source that is no radio.",
+  "An illegal value for the tuner frequency was given.",
+  "The requested feature is not implemented (yet)."
 };
 
 
@@ -78,6 +81,8 @@ public:
 	void ShowGroupStatistics();
 	void ShowAltFreqList();
 	void ShowTMCList();
+	void ShowTunerFrequency();
+	void ShowSetTunerFrequency(double FreqToSet);
 private:
 	RDSConnectionHandle handle;
 	vector<int> event_counts;

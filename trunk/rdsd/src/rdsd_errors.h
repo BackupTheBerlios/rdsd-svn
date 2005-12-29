@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2005 by Hans J. Koch                                    *
- *   koch@hjk-az.de                                                *
+ *   hjkoch@users.berlios.de                                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -39,6 +39,7 @@ enum RdsdError { RDSD_OK = 0,
 		 RDSD_SOURCE_READ_ERROR,
 		 RDSD_UNIX_SOCK_CREATE,
 		 RDSD_TCPIP_SOCK_CREATE,
+		 RDSD_RADIO_IOCTL,
 		 
 	       };
 

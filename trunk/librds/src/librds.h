@@ -73,8 +73,8 @@ enum RdsCmdNums {
 static const char* RdsCommands[RDS_CMD_COUNT] = {
 	"none",
 	"esrc",
-	"srxf",
-	"grxf",
+	"srxfre",
+	"rxfre",
 	"sevnt",
 	"gevnt",
 	"rflags",
@@ -116,7 +116,6 @@ enum LibRdsErr {
   RDS_UNEXPECTED_RESPONSE,   //!< The response from rdsd is not what was expected
   RDS_ILLEGAL_TIMEOUT,       //!< Attempt to set a timeout value that is too big or too small
   RDS_NO_RADIO_SOURCE,       //!< Attempt to get/set the RX frequency of a source that is no radio.
-  RDS_RADIO_IOCTL,           //!< An ioctl() for the radio device file failed.
   RDS_ILLEGAL_TUNER_FREQ,    //!< An illegal value for the tuner frequency was given.
   RDS_NOT_IMPLEMENTED	     //!< The requested feature is not implemented (yet).
 }; 
@@ -155,6 +154,7 @@ const rds_events_t RDS_EVENT_LAST_RADIOTEXT = 0x0080; //!< A radio text string w
 const rds_events_t RDS_EVENT_TMC            = 0x0100; //!< The TMC message list was modified
 const rds_events_t RDS_EVENT_GROUP_STAT     = 0x0200; //!< The group statistics were updated
 const rds_events_t RDS_EVENT_AF_LIST        = 0x0400; //!< An alternative frequency list is ready
+const rds_events_t RDS_EVENT_RX_FREQ        = 0x0800; //!< The receiver frequency has changed.
 
 //! Constants for debug levels
 /*!

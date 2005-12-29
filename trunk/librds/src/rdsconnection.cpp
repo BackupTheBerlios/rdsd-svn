@@ -421,6 +421,34 @@ int RDSconnection::GetGroupStatisticsBuffer(unsigned int src, char* buf, size_t&
   return RDS_OK;
 }
 
+int RDSconnection::GetTunerFrequency(unsigned int src, double& freq)
+{
+  string data;
+  int ret = wait_for_data(src,"rxfre",data);
+  if (ret) return ret;
+  int freq_khz;
+  if (! StringToInt(data,freq_khz)) return RDS_UNEXPECTED_RESPONSE;
+  freq = (double)freq_khz * 1000.0;
+  return RDS_OK;
+}
+
+int RDSconnection::SetTunerFrequency(unsigned int src, double freq)
+{
+  int freq_khz = (int)(freq/1000.0 + 0.5);
+  ostringstream oss;
+  oss << freq_khz;
+  int ret = send_command(src,"srxfre",oss.str());
+  if (ret) return ret;
+  string data;
+  ret = wait_for_data(src,"srxfre",data);
+  if (ret) return ret;
+  if (data != "OK"){
+    debug_msg(RDS_DEBUG_WARN,"SetTunerFrequency(): Unexpected response: >"+data+"<");
+    return RDS_UNEXPECTED_RESPONSE;
+  }
+  return RDS_OK;
+}
+
 // private member functions -------------------------------------
 
 unsigned long RDSconnection::get_millisec_time()
@@ -754,6 +782,7 @@ bool RDSconnection::process_event_msg()
   if (event_code & RDS_EVENT_TMC)            send_command(src,"tmc","");
   if (event_code & RDS_EVENT_GROUP_STAT)     send_command(src,"gstat","");
   if (event_code & RDS_EVENT_AF_LIST)        send_command(src,"aflist","");
+  if (event_code & RDS_EVENT_RX_FREQ)        send_command(src,"rxfre","");
   return true;
 }
 

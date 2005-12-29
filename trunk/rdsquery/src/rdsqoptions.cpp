@@ -17,27 +17,30 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "rdsqoptions.h"
 #include <unistd.h>
 #include <iostream>
 #include <cstdlib>
 #include <sstream>
 
+
 namespace std {
 
 RdsqOptions::RdsqOptions()
+  : record_count(1), conn_type(CONN_TYPE_UNIX),
+    server_name("/var/tmp/rdsd.sock"),
+    tcpip_port(4321), source_num(0),
+    event_mask(0), freq_to_set(-1.0),
+    have_opt_e(false), have_opt_f(false),
+    have_opt_s(false), have_opt_p(false),
+    have_opt_t(false), have_opt_u(false)
 {
-  record_count = 1;
-  conn_type = CONN_TYPE_UNIX;
-  server_name = "/var/tmp/rdsd.sock";
-  tcpip_port = 4321;
-  source_num = 0;
-  event_mask = 0;
-  have_opt_e = false;
-  have_opt_s = false;
-  have_opt_p = false;
-  have_opt_t = false;
-  have_opt_u = false;
+
 }
 
 
@@ -52,7 +55,7 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
   int itmp;
   rds_events_t evnt_tmp;
 
-  while ( (option = getopt(argc,argv,"c:ehvn:s:u:t:p:")) != EOF ) {
+  while ( (option = getopt(argc,argv,"c:ef:hvn:s:u:t:p:")) != EOF ) {
     switch (option){
       case 'c' :  if (try_str_to_int(optarg,itmp)) record_count=itmp;
                   else {
@@ -62,6 +65,9 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
                   }
                   break;
       case 'e' :  have_opt_e = true;
+                  break;
+      case 'f' :  have_opt_f = true;
+                  if (try_str_to_int(optarg,itmp)) freq_to_set=(double) itmp * 1000.0;
                   break;
       case 'n' :  if (try_str_to_int(optarg,itmp)) source_num=itmp;
                   else {
@@ -136,7 +142,7 @@ void RdsqOptions::show_usage()
 
 void RdsqOptions::show_version()
 {
-  cout << "0.0.1" << endl; /* FIXME */
+  cout << VERSION << endl;
 }
 
 bool RdsqOptions::try_str_to_int(char *s, int &result)
@@ -163,7 +169,7 @@ bool RdsqOptions::try_parse_types(char *s, rds_events_t &result)
   if (! s) return false;
   string S(s);
   string cmd;
-  int i=0;
+  unsigned int i=0;
   while (i<S.size()){
     if (S[i] != ',') cmd.push_back(S[i]);
     if ((S[i] == ',')||(i==(S.size()-1))) {

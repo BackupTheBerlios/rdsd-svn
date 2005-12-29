@@ -3,24 +3,14 @@
   <general>
     <author>Hans J. Koch</author>
     <email>koch@users.berlios.de</email>
-    <version>0.1</version>
+    <version>0.0.1</version>
     <projectmanagement>KDevAutoProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
       <keyword>C++</keyword>
       <keyword>Code</keyword>
     </keywords>
-    <ignoreparts>
-      <part>Unterstützung für ClearCase (KDevelop)</part>
-      <part>KDevcopyto</part>
-      <part>Dateibaum (KDevelop)</part>
-      <part>Dateigruppen-Komponente (KDevelop)</part>
-      <part>Debugger (KDevelop)</part>
-      <part>Klassenansicht (KDevelop)</part>
-      <part>Unterstützung für Perforce (KDevelop)</part>
-      <part>Unterstützung für CVSService (KDevelop)</part>
-      <part>VisualBoy Advance (KDevelop)</part>
-    </ignoreparts>
+    <ignoreparts/>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
     <description/>
@@ -73,7 +63,7 @@
         <cxxcompilerbinary/>
         <f77compilerbinary/>
         <cflags/>
-        <cxxflags/>
+        <cxxflags>-Wall</cxxflags>
         <f77flags/>
       </default>
     </configurations>
@@ -192,5 +182,40 @@
       <headerCompletionDelay>250</headerCompletionDelay>
     </codecompletion>
     <references/>
+    <creategettersetter>
+      <prefixGet/>
+      <prefixSet>set</prefixSet>
+      <prefixVariable>m_,_</prefixVariable>
+      <parameterName>theValue</parameterName>
+      <inlineGet>true</inlineGet>
+      <inlineSet>true</inlineSet>
+    </creategettersetter>
   </kdevcppsupport>
+  <kdevvisualadvance>
+    <emulator>VisualBoyAdvance</emulator>
+    <binary/>
+    <addOptions/>
+    <terminal>false</terminal>
+    <fullscreen>false</fullscreen>
+    <graphicFilter>-f0</graphicFilter>
+    <scaling>-1</scaling>
+  </kdevvisualadvance>
+  <kdevdebugger>
+    <general>
+      <programargs/>
+      <gdbpath/>
+      <dbgshell>libtool</dbgshell>
+      <configGdbScript/>
+      <runShellScript/>
+      <runGdbScript/>
+      <breakonloadinglibs>true</breakonloadinglibs>
+      <separatetty>false</separatetty>
+      <floatingtoolbar>false</floatingtoolbar>
+    </general>
+    <display>
+      <staticmembers>false</staticmembers>
+      <demanglenames>true</demanglenames>
+      <outputradix>10</outputradix>
+    </display>
+  </kdevdebugger>
 </kdevelop>

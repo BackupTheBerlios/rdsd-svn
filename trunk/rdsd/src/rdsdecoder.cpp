@@ -34,6 +34,7 @@ RDSdecoder::RDSdecoder()
   good_group_counters.resize(33,0);
   bad_group_counters.resize(33,0);
   group_counters_cnt = 0;
+  last_pi_code = -1;
 }
 
 RDSdecoder::~RDSdecoder()
@@ -49,6 +50,16 @@ rds_events_t RDSdecoder::GetAllEvents()
 void RDSdecoder::SetAllEvents(rds_events_t evts)
 {
   events = evts;
+}
+
+void RDSdecoder::AddEvents(rds_events_t evts)
+{
+  events |= evts;
+}
+
+void RDSdecoder::ClearEvents(rds_events_t evts)
+{
+  events &= (~evts);
 }
  
 
@@ -87,6 +98,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     index = group.GetGroupType();
     good_group_counters[index] = good_group_counters[index]+1;
     group_counters_cnt++;
+    
     if (group_counters_cnt>10){
       set_event(RDS_EVENT_GROUP_STAT);
       group_counters_cnt = 0;
@@ -251,6 +263,8 @@ void RDSdecoder::set_rds_flag(rds_flags_t flag, bool new_state)
 
 void RDSdecoder::set_pi_code(int new_code)
 {
+  if (last_pi_code != new_code) set_event(RDS_EVENT_RX_FREQ);
+  last_pi_code = new_code;
   PIcode = new_code;
   set_event(RDS_EVENT_PI_CODE);
 }

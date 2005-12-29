@@ -334,6 +334,8 @@ int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufs
   and/or bufsize is zero, bufsize will receive the required size.
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param buf Pointer to the buffer that will receive the result.
+  \param bufsize Size, in bytes, of the buffer.
   \return RDS_OK on success,
 */
 int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
@@ -343,25 +345,29 @@ int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsi
 }
 
 /*!
-  Get the current receiver frequency of a V4L2 radio source.
+  Get the current receiver frequency of a V4L2 radio source (as reported by the card's driver).
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param frequency Variable to receive the tuner frequency.
   \return RDS_OK on success,
 */
 int rds_get_rx_frequency(RDSConnectionHandle hnd, int src, double &frequency)
 {
-  return RDS_NOT_IMPLEMENTED;
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetTunerFrequency(src,frequency);
 }
 
 /*!
   Set the current receiver frequency of a V4L2 radio source.
   \param hnd A valid handle returned by rds_create_connection_object().
   \param src A valid source number, one of those returned by rds_enum_sources().
+  \param frequency The desired tuner frequency (in Hz).
   \return RDS_OK on success,
 */
 int rds_set_rx_frequency(RDSConnectionHandle hnd, int src, double frequency)
 {
-  return RDS_NOT_IMPLEMENTED;
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->SetTunerFrequency(src,frequency);
 }
 
 /*!

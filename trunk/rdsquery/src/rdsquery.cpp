@@ -116,6 +116,10 @@ int main(int argc, char *argv[])
   }
 
   if (opts.GetEnumWanted()) rds.ShowEnumSrc();
+  if (opts.GetFreqWanted()){
+    if (opts.GetFreqToSet()>0.0) rds.ShowSetTunerFrequency(opts.GetFreqToSet());
+    else rds.ShowTunerFrequency();
+  }
 
   if (opts.GetEventMask() == 0) clean_exit(hnd);
   
