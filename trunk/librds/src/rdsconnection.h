@@ -84,6 +84,8 @@ public:
   int GetTunerFrequency(unsigned int src, double& freq);
   //! Set the tuner frequency of a V4L radio device.
   int SetTunerFrequency(unsigned int src, double freq);
+  //! Get the receiver signal strength of a V4L radio device.
+  int GetTunerSignalStrength(unsigned int src, int& strength);
 private:
   RdsdCommandList CmdList;
   int sock_fd;

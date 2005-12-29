@@ -181,8 +181,8 @@ int RDSsource::Process()
       buf.resize(ret);
       Data.AddBytes(&buf);
       status = SRCSTAT_OK;
-      // RDS_EVENT_RX_FREQ makes only sense if we have a radio device:
-      if (src_type != SRCTYPE_RADIODEV) Data.ClearEvents(RDS_EVENT_RX_FREQ);
+      // RDS_EVENT_RX_FREQ and RDS_EVENT_RX_SIGNAL make only sense if we have a radio device:
+      if (src_type != SRCTYPE_RADIODEV) Data.ClearEvents(RDS_EVENT_RX_FREQ | RDS_EVENT_RX_SIGNAL);
     }
     return RDSD_OK;
   }

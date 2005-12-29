@@ -102,6 +102,9 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     if (group_counters_cnt>10){
       set_event(RDS_EVENT_GROUP_STAT);
       group_counters_cnt = 0;
+
+      set_event(RDS_EVENT_RX_SIGNAL);
+      set_event(RDS_EVENT_RX_FREQ);
     }
     
     // Each group contains the PI code in block 0:

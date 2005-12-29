@@ -449,6 +449,15 @@ int RDSconnection::SetTunerFrequency(unsigned int src, double freq)
   return RDS_OK;
 }
 
+int RDSconnection::GetTunerSignalStrength(unsigned int src, int& strength)
+{
+  string data;
+  int ret = wait_for_data(src,"rxsig",data);
+  if (ret) return ret;
+  if (! StringToInt(data,strength)) return RDS_UNEXPECTED_RESPONSE;
+  return RDS_OK;
+}
+
 // private member functions -------------------------------------
 
 unsigned long RDSconnection::get_millisec_time()

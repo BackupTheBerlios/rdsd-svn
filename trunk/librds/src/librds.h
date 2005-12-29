@@ -47,6 +47,7 @@ enum RdsCmdNums {
   RDS_CMD_ENUM_SRC,
   RDS_CMD_SET_RX_FREQ,
   RDS_CMD_GET_RX_FREQ,
+  RDS_CMD_GET_RX_SIGNAL,
   RDS_CMD_SET_EVENT,
   RDS_CMD_GET_EVENT,
   RDS_CMD_FLAGS,
@@ -75,6 +76,7 @@ static const char* RdsCommands[RDS_CMD_COUNT] = {
 	"esrc",
 	"srxfre",
 	"rxfre",
+	"rxsig",
 	"sevnt",
 	"gevnt",
 	"rflags",
@@ -155,6 +157,8 @@ const rds_events_t RDS_EVENT_TMC            = 0x0100; //!< The TMC message list 
 const rds_events_t RDS_EVENT_GROUP_STAT     = 0x0200; //!< The group statistics were updated
 const rds_events_t RDS_EVENT_AF_LIST        = 0x0400; //!< An alternative frequency list is ready
 const rds_events_t RDS_EVENT_RX_FREQ        = 0x0800; //!< The receiver frequency has changed.
+const rds_events_t RDS_EVENT_RX_SIGNAL      = 0x1000; //!< New receiver signal strength info.
+
 
 //! Constants for debug levels
 /*!
@@ -223,6 +227,8 @@ int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsi
 int rds_get_rx_frequency(RDSConnectionHandle hnd, int src, double &frequency);
 //! Set the current receiver frequency of a V4L2 radio source.
 int rds_set_rx_frequency(RDSConnectionHandle hnd, int src, double frequency);
+//! Get the current receiver signal strength of a V4L2 radio source.
+int rds_get_rx_signal_strength(RDSConnectionHandle hnd, int src, int &strength);
 //! Get the RDS group statistics buffer or query the required buffer size.
 int rds_get_group_stat_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize);
 }

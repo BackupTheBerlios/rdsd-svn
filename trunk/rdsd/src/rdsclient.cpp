@@ -152,6 +152,13 @@ int RDSclient::ExecCmd()
       if (src->GetRadioFreq(rxfreq) == RDS_OK) msg << rxfreq << endl;
     }
   }
+  else if (cmd_str=="rxsig"){
+    msg << src_num << ":rxsig" << endl;
+    if (src){
+      int rxsignal;
+      if (src->GetSignalStrength(rxsignal) == RDS_OK) msg << rxsignal << endl;
+    }
+  }
   else if (cmd_str=="sevnt"){
     msg << src_num << ":sevnt" << endl;
     if (src){

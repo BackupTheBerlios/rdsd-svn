@@ -370,6 +370,13 @@ int rds_set_rx_frequency(RDSConnectionHandle hnd, int src, double frequency)
   return conn->SetTunerFrequency(src,frequency);
 }
 
+//! Get the current receiver signal strength of a V4L2 radio source.
+int rds_get_rx_signal_strength(RDSConnectionHandle hnd, int src, int &strength)
+{
+  RDSconnection* conn = (RDSconnection*)hnd;
+  return conn->GetTunerSignalStrength(src,strength);
+}
+
 /*!
   Get the RDS group statistics buffer or query the required buffer size.
   \param hnd A valid handle returned by rds_create_connection_object().

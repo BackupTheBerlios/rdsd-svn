@@ -68,6 +68,11 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
                   break;
       case 'f' :  have_opt_f = true;
                   if (try_str_to_int(optarg,itmp)) freq_to_set=(double) itmp * 1000.0;
+                  else {
+                    cerr << "Illegal or missing argument for option -n." << endl;
+                    show_usage();
+                    return false;
+                  }
                   break;
       case 'n' :  if (try_str_to_int(optarg,itmp)) source_num=itmp;
                   else {
@@ -115,7 +120,7 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
                   return false;
     }
   }
-  if ((! have_opt_t)&&(! have_opt_e)) { show_usage(); return false; }
+  if ((! have_opt_t)&&(!(have_opt_e||have_opt_f))) { show_usage(); return false; }
   if ((have_opt_p)&&(!have_opt_s)){ show_usage(); return false; }
   return true;
 }
@@ -137,7 +142,19 @@ void RdsqOptions::ShowOptions()
 void RdsqOptions::show_usage()
 {
   cerr << "Usage:" << endl;
-  cerr << "(TODO...)" << endl;
+  cerr << "rdsquery [-s|-u <server>] <options>" << endl;
+  cerr << "-h : Show this help and exit." << endl;
+  cerr << "-v : Show version information and exit." << endl;
+  cerr << "-s <TCP/IP-Server>: Address/name of the machine where rdsd is running." << endl;
+  cerr << "-p <portnum>: TCP/IP port where rdsd is listening (default 4321)." << endl;
+  cerr << "-u <Unix socket>: Socket where rdsd is listening (default /var/tmp/rdsd.sock)" << endl;
+  cerr << "-e : Enumerate RDS sources and exit." << endl;
+  cerr << "-n <srcnum>: Specify the RDS source number (see -e), default 0." << endl;
+  cerr << "-f <freqkhz> : Set tuner frequency to freqkhz and exit." << endl;
+  cerr << "-t <type1,type2...>: Comma separated list of data types. Valid types are:" << endl;
+  cerr << "   rxfre,rxsig,rflags,picode,ptype,pname,locdt,utcdt,rtxt,lrtxt,tmc,aflist,gstat" << endl;
+  cerr << "-c <count>: Number of data records that rdsquery should wait for." << endl;
+  cerr << "   (default: 1, -c 0 means continous operation, use STRG+C to stop)." << endl;
 }
 
 void RdsqOptions::show_version()
@@ -176,6 +193,8 @@ bool RdsqOptions::try_parse_types(char *s, rds_events_t &result)
       int cmd_num = find_cmd_num(cmd);
       if (cmd_num == RDS_CMD_NONE) return false;
       switch (cmd_num){
+        case RDS_CMD_GET_RX_FREQ   : result |= RDS_EVENT_RX_FREQ; break;
+        case RDS_CMD_GET_RX_SIGNAL : result |= RDS_EVENT_RX_SIGNAL; break;
         case RDS_CMD_FLAGS         : result |= RDS_EVENT_FLAGS; break;
         case RDS_CMD_PI_CODE       : result |= RDS_EVENT_PI_CODE; break;
         case RDS_CMD_PTY_CODE      : result |= RDS_EVENT_PTY_CODE; break;

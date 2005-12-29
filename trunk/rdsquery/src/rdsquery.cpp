@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
   RdsqOptions opts;
   if (! opts.ProcessCmdLine(argc,argv)) exit(1);
 
-  opts.ShowOptions();
+  //opts.ShowOptions();
   
   RdsQueryHandler rds;
   
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 
   if (opts.GetEnumWanted()) rds.ShowEnumSrc();
   if (opts.GetFreqWanted()){
-    if (opts.GetFreqToSet()>0.0) rds.ShowSetTunerFrequency(opts.GetFreqToSet());
+    if (opts.GetFreqToSet()>1.0) rds.ShowSetTunerFrequency(opts.GetFreqToSet());
     else rds.ShowTunerFrequency();
   }
 
