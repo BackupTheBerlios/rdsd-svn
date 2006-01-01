@@ -18,6 +18,17 @@ other (future) applications that use librds.
 NOTE: You might want to add "/usr/local/lib" to your /etc/ld.so.conf
 so that ld is able to find librds.
 
+If you want to use librds in your own application, you can create
+Documentation by calling doxygen from the top level librds source
+directory:
+
+# doxygen Doxyfile
+
+This will create a subdirectory "html" that contains class and API
+documentation. For further questions, please subscribe to the
+rdsd-devel mailing list and ask there. Try to avoid asking me by
+private mail.
+
 The following chapter is a standard text that explains other 
 possibilities of the configure/make system. If you have some spare time
 or some unusual wishes, read it :-)

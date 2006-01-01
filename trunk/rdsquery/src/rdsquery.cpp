@@ -146,6 +146,8 @@ int main(int argc, char *argv[])
     if (events & RDS_EVENT_TMC) rds.ShowTMCList();
     if (events & RDS_EVENT_GROUP_STAT) rds.ShowGroupStatistics();
     if (events & RDS_EVENT_AF_LIST) rds.ShowAltFreqList();
+    if (events & RDS_EVENT_RX_FREQ) rds.ShowTunerFrequency();
+    if (events & RDS_EVENT_RX_SIGNAL) rds.ShowSignalStrength();
     if (! rds.DecRecordCounters(events)) break;
   }
 

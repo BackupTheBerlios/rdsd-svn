@@ -281,6 +281,18 @@ void RdsQueryHandler::ShowSetTunerFrequency(double FreqToSet)
   cout << freq_khz << endl;
 }
 
+void RdsQueryHandler::ShowSignalStrength()
+{
+  cout << "rxsig:";
+  int strength;
+  int ret = rds_get_rx_signal_strength(handle,src_num,strength);
+  if (ret){
+    ShowError(ret);
+    return;
+  }
+  cout << strength << endl;
+}
+
 void RdsQueryHandler::show_debug()
 {
   unsigned int buf_size = 0;

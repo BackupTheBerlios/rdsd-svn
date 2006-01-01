@@ -83,6 +83,7 @@ public:
 	void ShowTMCList();
 	void ShowTunerFrequency();
 	void ShowSetTunerFrequency(double FreqToSet);
+	void ShowSignalStrength();
 private:
 	RDSConnectionHandle handle;
 	vector<int> event_counts;

@@ -1,3 +1,25 @@
+rdsquery Installation
+=====================
+
+Dependencies: Please make sure that librds is already installed.
+rdsquery needs librds.h at compile time and librds.so at runtime.
+rdsquery is written in C++ and makes use of the Standard Template
+Library (STL). STL header files have to be installed.
+
+rdsquery should compile the standard way:
+
+./configure
+make
+make install (as root)
+
+See README for more information.
+
+If you have questions, please subscribe to the rdsd-devel mailing
+list. 
+
+See http://rdsd.berlios.de for details.
+
+
 Basic Installation
 ==================
 

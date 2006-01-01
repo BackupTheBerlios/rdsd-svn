@@ -3,7 +3,7 @@
   <general>
     <author>Hans J. Koch</author>
     <email>koch@hjk-az.de</email>
-    <version>0.1</version>
+    <version>0.0.1</version>
     <projectmanagement>KDevAutoProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
@@ -218,4 +218,32 @@
       <outputradix>10</outputradix>
     </display>
   </kdevdebugger>
+  <dist>
+    <custom>false</custom>
+    <bzip>false</bzip>
+    <archname/>
+    <appname>librds</appname>
+    <version>0.0.1</version>
+    <release/>
+    <vendor>Hans J. Koch</vendor>
+    <licence>LGPL</licence>
+    <summary/>
+    <group/>
+    <packager>Hans J. Koch</packager>
+    <description>RDS data acquisition library. Through this library, applications can connect to a running RDS daemon (rdsd).</description>
+    <changelog>First alpha release</changelog>
+    <devpackage>false</devpackage>
+    <docspackage>false</docspackage>
+    <appicon>false</appicon>
+    <arch>0</arch>
+    <genHTML>false</genHTML>
+    <useRPM>false</useRPM>
+    <ftpkde>false</ftpkde>
+    <appskde>false</appskde>
+    <url/>
+  </dist>
+  <ctagspart>
+    <customArguments/>
+    <customTagfilePath/>
+  </ctagspart>
 </kdevelop>

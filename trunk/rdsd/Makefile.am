@@ -3,6 +3,6 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src
-
+EXTRA_DIST = Doxyfile rdsd.1
 man_MANS = rdsd.1
 
