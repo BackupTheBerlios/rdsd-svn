@@ -40,7 +40,7 @@ enum RdsdError { RDSD_OK = 0,
 		 RDSD_UNIX_SOCK_CREATE,
 		 RDSD_TCPIP_SOCK_CREATE,
 		 RDSD_RADIO_IOCTL,
-		 
+		 RDSD_I2C_IOCTL,
 	       };
 
 

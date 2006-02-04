@@ -22,11 +22,17 @@
 #include <librds.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <sstream>
+
+// We shouldn't include kernel headers...
 #include <linux/types.h>
 #include <linux/videodev.h>
 #include <linux/videodev2.h>
-//#include <linux/i2c.h> //lots of errors if I include this...
-#include <sstream>
+
+
+// The following define is stolen from linux/i2c.h to avoid including
+// a kernel header. 
+#define I2C_SLAVE	0x0703
 
 namespace std {
 
@@ -132,7 +138,11 @@ int RDSsource::Open()
              return RDSD_SOURCE_OPEN_ERROR;
            }
 	   fd = ret;
-	   //ioctl(fd,I2C_SLAVE,0x20 >> 1); // Don't know how to #include <linux/i2c.h> :-(
+	   if (ioctl(fd,I2C_SLAVE,0x20 >> 1)){ //FIXME: 0x20 should be configurable
+             LogMsg(LL_ERR,"I2C ioctl failed for source: "+srcname);
+             close(fd);
+             return RDSD_I2C_IOCTL;
+	   }
            break;
   }
   LogMsg(LL_DEBUG,"Source opened: "+srcname);
@@ -155,6 +165,8 @@ int RDSsource::Process()
   if (status != SRCSTAT_CLOSED){
     CharBuf buf(300);
     int ret;
+    unsigned char tmp;
+    unsigned char blocknum;
     switch (src_type){
       case SRCTYPE_NONE:
              return RDSD_NO_SOURCE_TYPE;
@@ -171,6 +183,18 @@ int RDSsource::Process()
              ret = read(fd,&buf[0],6);
 	     if (ret==6){
                buf.resize(3); //use only first 3 bytes for the moment
+               blocknum = buf[0] >> 5;
+               tmp = buf[2];
+	       buf[2] = buf[0];
+	       buf[0] = tmp;
+
+	       tmp = blocknum;
+	       tmp |= blocknum << 3;	/* Received offset == Offset Name (OK ?) */
+	       if ((buf[2] & 0x03) == 0x03)
+		 tmp |= 0x80;	/* uncorrectable error */
+	       else if ((buf[2] & 0x03) != 0x00)
+		 tmp |= 0x40;	/* corrected error */
+	       buf[2] = tmp;	/* Is this enough ? Should we also check other bits ? */
 	       ret=3;
 	     }
 	     else if (ret>0) ret = -1;
