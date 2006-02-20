@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "conffile.h"
 #include <fstream>
+#include <sstream>
 
 namespace std {
 
@@ -93,6 +94,7 @@ int ConfFile::parse(string filename)
 {
   enum CFScanState {CF_ERROR,CF_RESET,CF_SECTNAME,CF_COMMENT,CF_VARNAME,CF_VALUE,
                     CF_STRING,CF_WAITSECT,CF_WAITEQ,CF_WAITVAL,CF_READY};
+  err_str = "";
   ifstream infile(filename.c_str());
   if (!infile) return -1;
   CFScanState state = CF_RESET;
@@ -103,7 +105,7 @@ int ConfFile::parse(string filename)
   ConfSection* cursect=0;
   while (char ch = next_char(infile)){
     switch (ch) {
-      case 0x0a:
+      case 0x0a:line_num++; // Fall through...
       case 0x0d:switch (state) {
                   case CF_READY:
                   case CF_RESET:
@@ -111,7 +113,8 @@ int ConfFile::parse(string filename)
 		                   break;
                   case CF_VALUE:   state=CF_READY;
 		                   break;
-		  default: state=CF_ERROR;  
+		  default: err_str = "Unexpected end of line.";
+		           state=CF_ERROR;
                 } 
                 break;
       case 0x09:
@@ -131,7 +134,8 @@ int ConfFile::parse(string filename)
 		                   break;
 		  case CF_STRING: valuestr+=ch;
 		                  break;
-		  default: state=CF_ERROR;  
+		  default: err_str = "Char '#' not valid here.";
+		           state=CF_ERROR;  
                 }
                 break;     
       case '=': switch (state) {
@@ -141,7 +145,9 @@ int ConfFile::parse(string filename)
 				  break;
 		  case CF_STRING: valuestr+=ch;
 		                  break;
-		  default: state=CF_ERROR;	  
+		  case CF_COMMENT: break;
+		  default: err_str = "Char '=' not valid here.";
+		  	   state=CF_ERROR;	  
                 }
                 break;
       case '"': switch (state) {
@@ -150,7 +156,9 @@ int ConfFile::parse(string filename)
 				   break;
 		  case CF_STRING:  state=CF_READY;
 		                   break;
-		  default: state=CF_ERROR;	  
+		  case CF_COMMENT: break;
+		  default: err_str = "Char '\"' not valid here.";
+		           state=CF_ERROR;	  
                 }
                 break;
       case '[': switch (state) {
@@ -160,7 +168,9 @@ int ConfFile::parse(string filename)
 				  break;
 		  case CF_STRING: valuestr+=ch;
 		                  break;
-		  default: state=CF_ERROR;	  
+		  case CF_COMMENT: break;
+		  default: err_str = "Char '[' not valid here.";
+		           state=CF_ERROR;
                 }
                 break;
       case ']': switch (state) {
@@ -175,7 +185,9 @@ int ConfFile::parse(string filename)
 				    break;
 		  case CF_STRING:   valuestr+=ch;
 		                    break;
-		  default: state=CF_ERROR;	  
+		  case CF_COMMENT:  break;
+		  default: err_str = "Char ']' not valid here.";
+		           state=CF_ERROR;	  
                 }
                 break;
       default:  if (state==CF_STRING) valuestr+=ch;
@@ -198,12 +210,16 @@ int ConfFile::parse(string filename)
 		      case CF_VALUE: 
 		      case CF_STRING:   valuestr+=ch;
 		                        break;
-		      case CF_WAITEQ:   state=CF_ERROR;
+		      case CF_WAITEQ:   err_str = "'=' expected.";
+		                        state=CF_ERROR;
 		                        break;
 		      default: ;
 		    }   
 		  } 
-		  else state=CF_ERROR;   
+		  else if (state != CF_COMMENT){
+		    err_str = "Illegal char found.";
+		    state=CF_ERROR;
+		  }
 		}
     } //switch (ch)...
     if (state==CF_READY){
@@ -213,9 +229,17 @@ int ConfFile::parse(string filename)
         valuestr="";
         state=CF_RESET;
       }
-      else state=CF_ERROR;
+      else{
+        err_str = "Section header missing.";
+        state=CF_ERROR;
+      }
     }
-    if (state==CF_ERROR) break;
+    if (state==CF_ERROR){
+      ostringstream oss;
+      oss << "(Line " << line_num << "): " << err_str;
+      err_str = oss.str();
+      break;
+    }
   } //while
   if (state==CF_ERROR) return -2;
   return 0;

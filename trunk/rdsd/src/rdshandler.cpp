@@ -54,8 +54,15 @@ int RDShandler::InitConf(string conf_file_name)
 {
   int ret=conf.LoadConf(conf_file_name);
   if (ret){
-    if (ret == -1) return RDSD_CONFFILE_NOT_FOUND;
-    if (ret == -2) return RDSD_CONFFILE_PARSE_ERROR;
+    if (ret == -1){
+      log.LogMsg(LL_ERR,"Config file not found: "+conf_file_name);
+      return RDSD_CONFFILE_NOT_FOUND;
+    }
+    if (ret == -2){
+      log.LogMsg(LL_ERR,"Error parsing "+conf_file_name+" :");
+      log.LogMsg(LL_ERR,conf.GetErrStr());
+      return RDSD_CONFFILE_PARSE_ERROR;
+    }
     return RDSD_UNKNOWN_ERROR;
   }
   ret = init_global();

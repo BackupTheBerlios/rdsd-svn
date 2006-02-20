@@ -89,13 +89,13 @@ void LogHandler::SetFileLog(bool DoFileLog)
 
 void LogHandler::LogMsg(LogLevel prio, string msg)
 {
-  if ((prio <= log_level)&&(! log_filename.empty())){
+  if (prio <= log_level){
     time_t td;
     time(&td);
     string timestr = ctime(&td);
     timestr[timestr.length()-1]=' ';
     if (console_log) cerr << timestr << msg << endl;
-    if (file_log){
+    if ((file_log)&&(! log_filename.empty())){
       ofstream logfile(log_filename.c_str(),ios::app);
       if (logfile) logfile << timestr << msg << endl;
     }

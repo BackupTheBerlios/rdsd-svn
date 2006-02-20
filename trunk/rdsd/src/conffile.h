@@ -24,6 +24,7 @@
 #include "confvalue.h"
 #include "confsection.h"
 #include <iostream>
+#include <string>
 
 namespace std {
 
@@ -40,6 +41,7 @@ public:
     int LoadConf(string filename);
     int GetSectionCount();
     ConfSection* GetSection(int index);
+    const string& GetErrStr() { return err_str; }
 private:
     vector<ConfSection*> sections;
     void clear_sections();
@@ -48,6 +50,7 @@ private:
     int parse(string filename);
     char eol_char;
     int line_num;
+    string err_str;
 };
 
 };

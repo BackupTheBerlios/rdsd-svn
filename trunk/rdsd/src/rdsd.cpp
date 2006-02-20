@@ -87,7 +87,7 @@ static void clean_exit(int err_code)
   ostringstream msg;
   if (err_code) msg << "rdsd terminating with error code " << err_code;
   else msg << "rdsd: normal shutdown.";
-  handler.log.LogMsg(LL_INFO,msg.str()); 
+  handler.log.LogMsg(LL_INFO,msg.str());
   exit(err_code);
 }
 
@@ -139,7 +139,6 @@ int main(int argc, char* argv[])
   handler.log.SetLogLevel(LL_DEBUG);
   
   int ret;
-  
   ret = handler.InitConf(conf_file_name);
   if (ret){
     handler.log.LogMsg(LL_EMERG,"Cannot initialize RDS handler.");
@@ -153,7 +152,7 @@ int main(int argc, char* argv[])
 
   if (running_pid>0){
     handler.log.LogMsg(LL_EMERG,"Cannot initialize PID file (already running ?).");
-    clean_exit(1);
+    clean_exit(2);
   }
 
   if (do_daemonize) {
@@ -161,7 +160,7 @@ int main(int argc, char* argv[])
     handler.log.SetConsoleLog(false);
     if (daemonize()<0){
       handler.log.LogMsg(LL_EMERG,"Ooops! Cannot fork()...");
-      clean_exit(2);
+      clean_exit(3);
     } 
     check_pid_file(handler.GetPidFilename()); //We have a new PID now...
   }
