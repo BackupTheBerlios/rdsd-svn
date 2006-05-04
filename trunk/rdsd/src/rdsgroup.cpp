@@ -43,10 +43,12 @@ void RDSgroup::Clear()
 
 void RDSgroup::AddBlock(unsigned char b0, unsigned char b1, unsigned char b2)
 {
+  
   if ((b2 & 0x80)!=0){ //erroneous block
     group_status = GS_ERROR;
     return;
   }
+  
   int blocknum = b2 & 0x07; // What's the differnce between "Received Offset"
                             // and "Offset Name" in V4L2 spec ???
   if (blocknum == 4) blocknum = 2; // Treat C' as C

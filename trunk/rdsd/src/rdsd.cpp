@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
   handler.log.SetLogLevel(LL_DEBUG);
   
   int ret;
+cout << "Start..." << endl;
   ret = handler.InitConf(conf_file_name);
   if (ret){
     handler.log.LogMsg(LL_EMERG,"Cannot initialize RDS handler.");

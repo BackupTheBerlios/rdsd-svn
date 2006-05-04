@@ -23,11 +23,13 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sstream>
+#include <errno.h>
 
 // We shouldn't include kernel headers...
 #include <linux/types.h>
 #include <linux/videodev.h>
 #include <linux/videodev2.h>
+#include <cstring>
 
 
 // The following define is stolen from linux/i2c.h to avoid including
@@ -266,15 +268,22 @@ int RDSsource::SetRadioFreq(int freq_khz)
   int ret;
   if (use_v4l1){
     ret = ioctl(fd, VIDIOCSFREQ, &ifreq); //V4L1
-    if (ret != 0) return RDSD_RADIO_IOCTL;
+    if (ret != 0){
+      show_sys_error("SetRadioFreq() V4L1 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
   }
   else {
     struct v4l2_frequency freq_struct;
     memset(&freq_struct,0,sizeof(freq_struct));
-    freq_struct.tuner = 0; //FIXME: should set this properly...
+    freq_struct.tuner = 0; 
+    freq_struct.type = V4L2_TUNER_RADIO;
     freq_struct.frequency = ifreq;
     ret = ioctl(fd, VIDIOC_S_FREQUENCY, &freq_struct); //V4L2
-    if (ret != 0) return RDSD_RADIO_IOCTL;
+    if (ret != 0){
+      show_sys_error("SetRadioFreq() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
   }
   return RDS_OK;
 }
@@ -285,14 +294,20 @@ int RDSsource::GetRadioFreq(int &freq_khz)
   int ifreq, ret;
   if (use_v4l1){
     ret = ioctl(fd, VIDIOCGFREQ, &ifreq); //V4L1
-    if (ret != 0) return RDSD_RADIO_IOCTL;
+    if (ret != 0){
+      show_sys_error("GetRadioFreq() V4L1 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
   }
   else {
     struct v4l2_frequency freq_struct;
     memset(&freq_struct,0,sizeof(freq_struct));
-    freq_struct.tuner = 0; //FIXME: should set this properly...
+    freq_struct.tuner = 0;
     ret = ioctl(fd, VIDIOC_G_FREQUENCY, &freq_struct); //V4L2
-    if (ret != 0) return RDSD_RADIO_IOCTL;
+    if (ret != 0){
+      show_sys_error("GetRadioFreq() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     ifreq = freq_struct.frequency;
   }
   freq_khz = 1000*ifreq/freq_factor;
@@ -307,14 +322,20 @@ int RDSsource::GetSignalStrength(int &signal_strength)
     struct video_tuner vt;
     memset(&vt,0,sizeof(vt));
     ret = ioctl (fd, VIDIOCGTUNER, &vt); //V4L1
-    if (ret != 0) return RDSD_RADIO_IOCTL;
+    if (ret != 0){
+      show_sys_error("GetSignalStrength() V4L1 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     signal_strength = vt.signal; // 0..65535
   }
   else{
     struct v4l2_tuner tuner_v4l2;
     memset(&tuner_v4l2,0,sizeof(tuner_v4l2));
     ret = ioctl(fd, VIDIOC_G_TUNER, &tuner_v4l2);
-    if (ret != 0) return RDSD_RADIO_IOCTL;
+    if (ret != 0){
+      show_sys_error("GetSignalStrength() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     signal_strength = tuner_v4l2.signal; // 0..65535
   }
   return RDS_OK;
@@ -325,18 +346,30 @@ int RDSsource::RadioMute()
   if (src_type != SRCTYPE_RADIODEV) return RDS_NO_RADIO_SOURCE;
   if (use_v4l1){
     struct video_audio vid_aud;
-    if (ioctl(fd, VIDIOCGAUDIO, &vid_aud)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd, VIDIOCGAUDIO, &vid_aud)){
+      show_sys_error("RadioMute() V4L1 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     vid_aud.flags |= VIDEO_AUDIO_MUTE;
-    if (ioctl(fd, VIDIOCSAUDIO, &vid_aud)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd, VIDIOCSAUDIO, &vid_aud)){
+      show_sys_error("RadioMute() V4L1 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
   }
   else{
     struct v4l2_queryctrl qctrl;
     qctrl.id = V4L2_CID_AUDIO_MUTE;
-    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)){
+      show_sys_error("RadioMute() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     struct v4l2_control ctrl;
     ctrl.id = V4L2_CID_AUDIO_MUTE;
     ctrl.value = qctrl.maximum;
-    if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) {
+      show_sys_error("RadioMute() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
   }
   return RDS_OK;
 }
@@ -346,29 +379,60 @@ int RDSsource::RadioUnMute()
   if (src_type != SRCTYPE_RADIODEV) return RDS_NO_RADIO_SOURCE;
   if (use_v4l1){
     struct video_audio vid_aud;
-    if (ioctl(fd, VIDIOCGAUDIO, &vid_aud)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd, VIDIOCGAUDIO, &vid_aud)){
+      show_sys_error("RadioUnMute() V4L1 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     if (vid_aud.volume == 0) vid_aud.volume = 65535;
     vid_aud.flags &= ~VIDEO_AUDIO_MUTE;
-    if (ioctl(fd, VIDIOCSAUDIO, &vid_aud)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd, VIDIOCSAUDIO, &vid_aud)){
+      show_sys_error("RadioUnMute() V4L1 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
   }
   else{
     struct v4l2_queryctrl qctrl;
     qctrl.id = V4L2_CID_AUDIO_VOLUME;
-    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)){
+      show_sys_error("RadioUnMute() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     struct v4l2_control ctrl;
     ctrl.id = V4L2_CID_AUDIO_VOLUME;
-    if (ioctl(fd,VIDIOC_G_CTRL,&ctrl)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_G_CTRL,&ctrl)){
+      show_sys_error("RadioUnMute() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     if (ctrl.value == qctrl.minimum){
       ctrl.value = qctrl.maximum;
-      if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDSD_RADIO_IOCTL;
+      if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)){
+      show_sys_error("RadioUnMute() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     }
     qctrl.id = V4L2_CID_AUDIO_MUTE;
-    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_QUERYCTRL,&qctrl)){
+      show_sys_error("RadioUnMute() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
     ctrl.id = V4L2_CID_AUDIO_MUTE;
     ctrl.value = qctrl.minimum;
-    if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)) return RDSD_RADIO_IOCTL;
+    if (ioctl(fd,VIDIOC_S_CTRL,&ctrl)){
+      show_sys_error("RadioUnMute() V4L2 ioctl:");
+      return RDSD_RADIO_IOCTL;
+    }
   }
   return RDS_OK;
+}
+
+void RDSsource::show_sys_error(const string& msg)
+{
+  if (errno){
+    LogMsg(LL_ERR,msg+strerror(errno));
+  }
+  else{
+    LogMsg(LL_DEBUG,msg+" OK.");
+  }
 }
 
 };

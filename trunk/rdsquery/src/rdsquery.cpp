@@ -58,7 +58,6 @@ void clean_exit(RDSConnectionHandle hnd)
   rds_close_connection(hnd);
   rds_delete_connection_object(hnd);
   remove(my_unix_sock.c_str());
-  cerr << "Exiting." << endl;
   exit(0);
 }
 

@@ -69,6 +69,7 @@ private:
   SourceStatus status;
   LogHandler *log;
   void LogMsg(LogLevel prio, string msg);
+  void show_sys_error(const string& msg);
 };
 
 typedef vector<RDSsource*> RDSsourceList;
