@@ -53,7 +53,7 @@ const string& RDShandler::GetPidFilename()
 int RDShandler::InitConf(string conf_file_name)
 {
   int ret=conf.LoadConf(conf_file_name);
-  cout << "LoadConf returns " << ret << endl;
+  
   if (ret){
     if (ret == -1){
       log.LogMsg(LL_ERR,"Config file not found: "+conf_file_name);
@@ -67,7 +67,7 @@ int RDShandler::InitConf(string conf_file_name)
     return RDSD_UNKNOWN_ERROR;
   }
   ret = init_global();
-  cout << "init_global returns " << ret << endl;
+  
   if (ret) return ret;
   return 0;
 }
