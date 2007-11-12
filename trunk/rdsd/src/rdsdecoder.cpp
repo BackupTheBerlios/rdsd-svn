@@ -137,7 +137,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 		     }
 		     if (group.GetGroupType() == GROUP_0A){
                        tmpAFlist.AddGroup(group);
-                       switch (AFlist.GetStatus()){
+                       switch (tmpAFlist.GetStatus()){
                          case AS_ERROR:    tmpAFlist.Clear();
                                            break;
                          case AS_COMPLETE: AFlist = tmpAFlist;
