@@ -41,6 +41,7 @@ static void sig_proc(int signr)
                  handler.Terminate();
 		 break;
     case SIGHUP:
+    case SIGPIPE:
                  break;
   }
 }
@@ -133,6 +134,7 @@ int main(int argc, char* argv[])
   signal(SIGINT,sig_proc);
   signal(SIGTERM,sig_proc);
   signal(SIGHUP,sig_proc);
+  signal(SIGPIPE,sig_proc);
   
   handler.log.SetConsoleLog(true);
   handler.log.SetFileLog(false);
