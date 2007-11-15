@@ -42,6 +42,7 @@ public:
     rds_events_t GetEventMask() { return event_mask; }
     bool GetEnumWanted() { return have_opt_e; }
     bool GetFreqWanted() { return have_opt_f; }
+    bool GetDirectWanted() { return have_opt_i; }
     double GetFreqToSet() { return freq_to_set; }
 private:
   int record_count;
@@ -57,6 +58,7 @@ private:
   bool have_opt_p;
   bool have_opt_t;
   bool have_opt_u;
+  bool have_opt_i;
   void show_usage();
   void show_version();
   bool try_str_to_int(char *s, int &result);

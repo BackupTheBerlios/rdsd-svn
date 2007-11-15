@@ -55,7 +55,7 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
   int itmp;
   rds_events_t evnt_tmp;
 
-  while ( (option = getopt(argc,argv,"c:ef:hvn:s:u:t:p:")) != EOF ) {
+  while ( (option = getopt(argc,argv,"c:eif:hvn:s:u:t:p:")) != EOF ) {
     switch (option){
       case 'c' :  if (try_str_to_int(optarg,itmp)) record_count=itmp;
                   else {
@@ -63,6 +63,8 @@ bool RdsqOptions::ProcessCmdLine(int argc, char *argv[])
                     show_usage();
                     return false;
                   }
+                  break;
+      case 'i' :  have_opt_i = true;
                   break;
       case 'e' :  have_opt_e = true;
                   break;
@@ -149,6 +151,7 @@ void RdsqOptions::show_usage()
   cerr << "-p <portnum>: TCP/IP port where rdsd is listening (default 4321)." << endl;
   cerr << "-u <Unix socket>: Socket where rdsd is listening (default /var/tmp/rdsd.sock)" << endl;
   cerr << "-e : Enumerate RDS sources and exit." << endl;
+  cerr << "-i : Immediately request data from rdsd instead of waiting for an event." << endl;
   cerr << "-n <srcnum>: Specify the RDS source number (see -e), default 0." << endl;
   cerr << "-f <freqkhz> : Set tuner frequency to freqkhz and exit." << endl;
   cerr << "-t <type1,type2...>: Comma separated list of data types. Valid types are:" << endl;

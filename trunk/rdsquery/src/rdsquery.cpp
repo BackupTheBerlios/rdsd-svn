@@ -122,7 +122,9 @@ int main(int argc, char *argv[])
 
   if (opts.GetEventMask() == 0) clean_exit(hnd);
   
-  ret = rds_set_event_mask(hnd,opts.GetSourceNum(),opts.GetEventMask());
+  rds_events_t events = opts.GetEventMask();
+
+  ret = rds_set_event_mask(hnd,opts.GetSourceNum(),events);
   if (RDS_OK != ret){
     rds.ShowError(ret);
     //show_debug(hnd);
@@ -131,8 +133,22 @@ int main(int argc, char *argv[])
 
   rds.InitRecordCounters(opts.GetEventMask(),opts.GetRecordCount());
 
-  rds_events_t events;
 
+  if (opts.GetDirectWanted()) {
+      if (events & RDS_EVENT_FLAGS) rds.ShowFlags();
+      if (events & RDS_EVENT_PI_CODE) rds.ShowPIcode();
+      if (events & RDS_EVENT_PTY_CODE) rds.ShowPTYcode();
+      if (events & RDS_EVENT_PROGRAMNAME) rds.ShowProgramName();
+      if (events & RDS_EVENT_UTCDATETIME) rds.ShowUTCdateTime();
+      if (events & RDS_EVENT_LOCDATETIME) rds.ShowLocalDateTime();
+      if (events & RDS_EVENT_RADIOTEXT) rds.ShowRadioText();
+      if (events & RDS_EVENT_LAST_RADIOTEXT) rds.ShowLastRadioText();
+      if (events & RDS_EVENT_TMC) rds.ShowTMCList();
+      if (events & RDS_EVENT_GROUP_STAT) rds.ShowGroupStatistics();
+      if (events & RDS_EVENT_AF_LIST) rds.ShowAltFreqList();
+      if (events & RDS_EVENT_RX_FREQ) rds.ShowTunerFrequency();
+      if (events & RDS_EVENT_RX_SIGNAL) rds.ShowSignalStrength();
+  }
   while (RDS_OK == rds_get_event(hnd,opts.GetSourceNum(),events)){
     if (events & RDS_EVENT_FLAGS) rds.ShowFlags();
     if (events & RDS_EVENT_PI_CODE) rds.ShowPIcode();
