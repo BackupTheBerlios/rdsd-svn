@@ -78,6 +78,7 @@ private:
   bool handle_freq_pair(int b0, int b1);
   int freq_in_khz(int b);
   bool add_freq(int freq, bool is_variant);
+  bool set_freq(int freq, int index); // for EON AFlist
 };
 
 

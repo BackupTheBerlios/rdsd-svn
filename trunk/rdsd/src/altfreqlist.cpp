@@ -45,38 +45,48 @@ void AltFreqList::Clear()
 
 void AltFreqList::AddGroup(RDSgroup& group)
 {
+  unsigned int vtype = (group.GetByte(1, 0) & 0x0F);
   if (  (group.GetGroupStatus() != GS_COMPLETE)
-      ||(group.GetGroupType() != GROUP_0A)) return;
-
+      ||((group.GetGroupType() != GROUP_0A)
+      && (group.GetGroupType() != GROUP_14A))) return;
+  
   int b0 = group.GetByte(2,1); // Byte order OK ???
   int b1 = group.GetByte(2,0);
-  switch (status){
-    case AS_EMPTY     : if ((b0>=224)&&(b0<=249)){
-                          freq_counter = b0-224;
-                          if (freq_counter==0){
-                            status = AS_COMPLETE;
-                            return;
-                          }
-                          if (b1 == 250){
-                            lfmf_follows=true;
-                            status = AS_INCOMPLETE;
-                            return;
-                          }
-                          if ((b1>=1)&&(b1<=204)){
-                            int f = (100*(b1-1))+87600;
-                            first_freq = f;
-                            add_freq(f,false);
-                          }
-                          else status = AS_ERROR;
-                        }
-                        else status = AS_ERROR;
-                        break;
-    case AS_INCOMPLETE: handle_freq_pair(b0,b1);
-                        break;
-    case AS_ERROR     : Clear();
-                        break;
-    case AS_COMPLETE  : status = AS_ERROR;
-                        break;
+  
+  if ((group.GetGroupType() == GROUP_14A) && vtype != 0x04) { //special case for EON mapped frequencies
+      int f = (100*(b1-1))+87600;
+      freq_list.resize(4);
+      set_freq(f, vtype-0x05);
+      status = AS_COMPLETE;
+  } else {
+      switch (status){
+          case AS_EMPTY     : if ((b0>=224)&&(b0<=249)){
+                                  freq_counter = b0-224;
+                                  if (freq_counter==0){
+                                      status = AS_COMPLETE;
+                                      return;
+                                  }
+                                  if (b1 == 250){
+                                      lfmf_follows=true;
+                                      status = AS_INCOMPLETE;
+                                      return;
+                                  }
+                                  if ((b1>=1)&&(b1<=204)){
+                                      int f = (100*(b1-1))+87600;
+                                      first_freq = f;
+                                      add_freq(f,false);
+                                  }
+                                  else status = AS_ERROR;
+                              }
+                              else status = AS_ERROR;
+                              break;
+          case AS_INCOMPLETE: handle_freq_pair(b0,b1);
+                              break;
+          case AS_ERROR     : Clear();
+                              break;
+          case AS_COMPLETE  : status = AS_ERROR;
+                              break;
+      }
   }
 }
 
@@ -151,5 +161,13 @@ bool AltFreqList::add_freq(int freq, bool is_variant)
   return false;
 }
 
+bool AltFreqList::set_freq(int freq, int index)
+{
+    AltFreq AF;
+    AF.Freq = freq;
+    AF.IsVariant = false;
+    freq_list[index] = AF;
+    return true;
+}
 
 }

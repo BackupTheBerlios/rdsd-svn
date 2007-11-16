@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "rdsdecoder.h"
+#include "rdschanneldata.h"
 #include <sstream>
 #include <iostream> //test only
 
@@ -26,9 +27,6 @@ namespace std {
 RDSdecoder::RDSdecoder()
 {
   events = 0;
-  PIcode = -1;
-  PTYcode = -1;
-  program_name.resize(8,'\r');
   utc_datetime_str   = "2000/1/1 00:00:00";
   local_datetime_str = "2000/1/1 00:00:00";
   good_group_counters.resize(33,0);
@@ -108,11 +106,13 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     }
     
     // Each group contains the PI code in block 0:
+    // THIS MUST BE THE FIRST ACTION WITH NEW DATA
+    // so we can change the curchind
     set_pi_code((group.GetByte(0,1) << 8) | group.GetByte(0,0));
 
     //some other info common in all groups:
-    set_rds_flag(RDS_FLAG_IS_TP,(group.GetByte(1,1) & 0x04));
-    set_pty_code(((group.GetByte(1,1) << 3) & 0x18) | ((group.GetByte(1,0) >> 5) & 0x07));
+    set_rds_flag(curchind, RDS_FLAG_IS_TP,(group.GetByte(1,1) & 0x04));
+    set_pty_code(curchind, ((group.GetByte(1,1) << 3) & 0x18) | ((group.GetByte(1,0) >> 5) & 0x07));
 
     //The lower 5 bits of block 1 carry special information in most groups:
     block1_lower5 = (group.GetByte(1,0) & 0x1F);
@@ -121,18 +121,18 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
     
     switch (group.GetGroupType()){
       case GROUP_0A:
-      case GROUP_0B: set_rds_flag(RDS_FLAG_IS_TA,(block1_lower5 & 0x10));
-                     set_rds_flag(RDS_FLAG_IS_MUSIC,(block1_lower5 & 0x08));
+      case GROUP_0B: set_rds_flag(curchind, RDS_FLAG_IS_TA,(block1_lower5 & 0x10));
+                     set_rds_flag(curchind, RDS_FLAG_IS_MUSIC,(block1_lower5 & 0x08));
                      index = (block1_lower5 & 0x03) << 1;
-                     set_prog_name(index,group.GetByte(3,1),group.GetByte(3,0));
+                     set_prog_name(curchind, index,group.GetByte(3,1),group.GetByte(3,0));
                      switch (block1_lower5 & 0x03){
-		       case 0: set_rds_flag(RDS_FLAG_IS_DYNAMIC_PTY,(block1_lower5 & 0x04));
+		       case 0: set_rds_flag(curchind, RDS_FLAG_IS_DYNAMIC_PTY,(block1_lower5 & 0x04));
 			       break;
-		       case 1: set_rds_flag(RDS_FLAG_IS_COMPRESSED,(block1_lower5 & 0x04));
+		       case 1: set_rds_flag(curchind, RDS_FLAG_IS_COMPRESSED,(block1_lower5 & 0x04));
 		               break;
-		       case 2: set_rds_flag(RDS_FLAG_IS_ARTIFICIAL_HEAD,(block1_lower5 & 0x04));
+		       case 2: set_rds_flag(curchind, RDS_FLAG_IS_ARTIFICIAL_HEAD,(block1_lower5 & 0x04));
 			       break;
-		       case 3: set_rds_flag(RDS_FLAG_IS_STEREO,(block1_lower5 & 0x04));
+		       case 3: set_rds_flag(curchind, RDS_FLAG_IS_STEREO,(block1_lower5 & 0x04));
 			       break;
 		     }
 		     if (group.GetGroupType() == GROUP_0A){
@@ -140,7 +140,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
                        switch (tmpAFlist.GetStatus()){
                          case AS_ERROR:    tmpAFlist.Clear();
                                            break;
-                         case AS_COMPLETE: AFlist = tmpAFlist;
+                         case AS_COMPLETE: chlist[curchind].AFlist = tmpAFlist;
                                            tmpAFlist.Clear();
                                            set_event(RDS_EVENT_AF_LIST);
                                            break;
@@ -148,23 +148,24 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
                        }
 		     }
 		     break;
-      case GROUP_2A: set_rds_flag(RDS_FLAG_TEXT_AB,(block1_lower5 & 0x10));
-                     radio_text.AddGroup(group);
+      case GROUP_2A: set_rds_flag(curchind, RDS_FLAG_TEXT_AB,(block1_lower5 & 0x10));
+                     chlist[curchind].radio_text.AddGroup(group);
                      set_event(RDS_EVENT_RADIOTEXT);
-                     if (radio_text.GetStatus() == RT_COMPLETE){
+                     if (chlist[curchind].radio_text.GetStatus() == RT_COMPLETE){
                        set_event(RDS_EVENT_LAST_RADIOTEXT);
-                       radio_text.Clear();
+                       chlist[curchind].radio_text.Clear();
                      }
                      break;
-      case GROUP_2B: set_rds_flag(RDS_FLAG_TEXT_AB,(block1_lower5 & 0x10));
+      case GROUP_2B: set_rds_flag(curchind, RDS_FLAG_TEXT_AB,(block1_lower5 & 0x10));
                      set_pi_code((group.GetByte(2,1) << 8) | group.GetByte(2,0));
-                     radio_text.AddGroup(group);
+                     chlist[curchind].radio_text.AddGroup(group);
                      set_event(RDS_EVENT_RADIOTEXT);
-                     if (radio_text.GetStatus() == RT_COMPLETE){
+                     if (chlist[curchind].radio_text.GetStatus() == RT_COMPLETE){
                        set_event(RDS_EVENT_LAST_RADIOTEXT);
-                       radio_text.Clear();
+                       chlist[curchind].radio_text.Clear();
                      }
                      break;
+      case GROUP_3A: break; //TODO: implement this
       case GROUP_4A: jul_date =   ((block1_lower5 & 0x03) << 15)
                                 | (group.GetByte(2,1) << 7) | (group.GetByte(2,0) >> 1);
 		     utc_hour = (group.GetByte(2,0) & 0x01) << 4;
@@ -176,9 +177,57 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 		     if (group.GetByte(3,0) & 0x20) utc_offset = -utc_offset;
 		     set_datetime_strings();
                      break;
-      case GROUP_8A: tmc_list.AddGroup(group);
-                     if (tmc_list.IsChanged()) set_event(RDS_EVENT_TMC);
+      case GROUP_8A: chlist[curchind].tmc_list.AddGroup(group);
+                     if (chlist[curchind].tmc_list.IsChanged()) set_event(RDS_EVENT_TMC);
+		     break;
+      case GROUP_14A: break; //TODO: properly implement this...
+                     /*{
+                     unsigned int vtype = (group.GetByte(1, 0) & 0x0F);
+                     int PIO = (group.GetByte(3,1) << 8 | group.GetByte(3,0));
+                     int choindex = lookup_PI(); 
+                     // cout << "Variant type: " << hex << vtype << endl;
+                     // cout << "PIT :" << hex << (group.GetByte(0,1) << 8 | group.GetByte(0,0)) << endl;
+                     // cout << "PIO :" << hex << (group.GetByte(3,1) << 8 | group.GetByte(3,0)) << endl;
+                     switch (vtype) {
+                         case 0x00:break;
+                         case 0x01:break;
+                         case 0x02:break;
+                         case 0x03:break;
+                         case 0x04:
+                                   tmpEONAFlist.AddGroup(group);
+                                   // cout << "tmp: " << tmpEONAFlist.AsString() << endl;
+                                   switch (tmpEONAFlist.GetStatus()){
+                                       case AS_ERROR:    tmpEONAFlist.Clear();
+                                                         break;
+                                       case AS_COMPLETE: chlist[curchind].EONAFlist = tmpEONAFlist;
+                                                         tmpEONAFlist.Clear();
+                                                         //set_event(RDS_EVENT_EON_AF_LIST);
+                                                         break;
+                                       default: ;
+                                   }
+                                   // cout << "EONAF: " << chlist[curchind].EONAFlist.AsString() << endl;
+                                   break;
+                         case 0x05:
+                         case 0x06:
+                         case 0x07:
+                         case 0x08:
+                                   chlist[curchind].EONAFlist.AddGroup(group);
+                                   // cout << "EONAF: " << chlist[curchind].EONAFlist.AsString() << endl;
+
+                                   break;
+                         case 0x09:break;
+                         case 0x0a:break;
+                         case 0x0b:break;
+                         case 0x0c:break;
+                         case 0x0d:break;
+                         case 0x0e:break;
+                         case 0x0f:break;
+                     }
+                         
                      break;
+      }*/
+      	
+
       default: break;
     } //switch
     group.Clear();
@@ -187,22 +236,22 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
 
 rds_flags_t RDSdecoder::GetRDSFlags()
 {
-  return rds_flags;
+  return chlist[curchind].GetRDSFlags();
 }
 
 const string& RDSdecoder::GetRadioText()
 {
-  return radio_text.GetBuffer();
+  return chlist[curchind].GetRadioText();
 }
 
 const string& RDSdecoder::GetLastRadioText()
 {
-  return radio_text.GetLastRadioText();
+  return chlist[curchind].GetLastRadioText();
 }
 
 const string& RDSdecoder::GetProgramName()
 {
-  return program_name;
+  return chlist[curchind].GetProgramName();
 }
 
 const string& RDSdecoder::GetUTCDateTimeString()
@@ -217,12 +266,12 @@ const string& RDSdecoder::GetLocalDateTimeString()
 
 int RDSdecoder::GetPIcode()
 {
-  return PIcode;
+  return chlist[curchind].GetPIcode();
 }
 
 int RDSdecoder::GetPTYcode()
 {
-  return PTYcode;
+  return chlist[curchind].GetPTYcode();
 }
 
 const string& RDSdecoder::GetGroupStatistics()
@@ -244,12 +293,12 @@ const string& RDSdecoder::GetGroupStatistics()
 
 const string& RDSdecoder::GetAltFreqList()
 {
-  return AFlist.AsString();
+  return chlist[curchind].GetAltFreqList();
 }
 
 const string& RDSdecoder::GetTMCList()
 {
-  return tmc_list.AsString();
+  return chlist[curchind].GetTMCList();
 }
 
 void RDSdecoder::set_event(rds_events_t evnt)
@@ -257,38 +306,50 @@ void RDSdecoder::set_event(rds_events_t evnt)
   events |= evnt;
 }
 
-void RDSdecoder::set_rds_flag(rds_flags_t flag, bool new_state)
+void RDSdecoder::set_rds_flag(int channelindex, rds_flags_t flag, bool new_state)
 {
-  if (new_state) rds_flags |= flag;
-  else rds_flags &= (!flag);
+  chlist[channelindex].set_rds_flag(flag, new_state);
   set_event(RDS_EVENT_FLAGS);
 }
 
 void RDSdecoder::set_pi_code(int new_code)
 {
-  if (last_pi_code != new_code) set_event(RDS_EVENT_RX_FREQ);
+  vector<RDSchanneldata>::iterator channel;
+  if (last_pi_code != new_code) {
+//      cout << "new pi code detected: " << new_code;
+      set_event(RDS_EVENT_RX_FREQ);
+      curchind = 0;
+      for (channel = chlist.begin(); channel != chlist.end(); channel++) {
+          if (channel->PIcode == new_code) break;
+          curchind++;
+      }
+      if (channel == chlist.end()) {
+          // new channel
+          RDSchanneldata newchannel(new_code);
+          chlist.push_back(newchannel);
+      }
+//  cout << "channel index: " << curchind << endl;
+  }
   last_pi_code = new_code;
-  PIcode = new_code;
   set_event(RDS_EVENT_PI_CODE);
 }
 
-void RDSdecoder::set_pty_code(int new_code)
+void RDSdecoder::set_pty_code(int channelindex, int new_code)
 {
-  PTYcode = new_code;
+  chlist[channelindex].set_pty_code(new_code);
   set_event(RDS_EVENT_PTY_CODE);
 }
 
-void RDSdecoder::set_prog_name(int first_index, char c1, char c2)
+void RDSdecoder::set_prog_name(int channelindex, int first_index, char c1, char c2)
 {
-  program_name[first_index]   = c1;
-  program_name[first_index+1] = c2;
+  chlist[channelindex].set_prog_name(first_index, c1, c2);
   if (first_index == 6) {
     set_event(RDS_EVENT_PROGRAMNAME);
     /*
-    cout << program_name << " (";
+    cout << chlist[curchind].program_name << " (";
     for (int i=0; i<8; i++){
       cout.setf(ios::hex, ios::basefield);
-      cout << (int)program_name[i] << " ";
+      cout << (int)chlist[curchind].program_name[i] << " ";
     }
     cout << ")" << endl;
     */
@@ -371,7 +432,5 @@ void RDSdecoder::set_datetime_strings()
   set_event(RDS_EVENT_UTCDATETIME);
   set_event(RDS_EVENT_LOCDATETIME);
 }
-
-
 
 };
