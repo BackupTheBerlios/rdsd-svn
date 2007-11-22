@@ -22,12 +22,14 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 #include <librds.h>
 #include "rdsgroup.h"
 #include "altfreqlist.h"
 #include "radiotext.h"
 #include "tmclist.h"
 #include "rdschanneldata.h"
+#include "loghandler.h"
 
 namespace std {
 
@@ -45,6 +47,9 @@ class RDSdecoder{
 public:
   RDSdecoder();
   ~RDSdecoder();
+  void SetLogHandler(LogHandler *loghandler);
+  void LogMsg(LogLevel prio, string msg);
+  void LogMsg(LogLevel prio);
   rds_events_t GetAllEvents();
   void SetAllEvents(rds_events_t evts);
   void AddEvents(rds_events_t evts);
@@ -62,6 +67,9 @@ public:
   int GetPIcode();
   int GetPTYcode();
 private:
+  LogHandler *log;
+  ostringstream logstr;
+  
   RDSgroup group;
   vector<unsigned long> good_group_counters;
   vector<unsigned long> bad_group_counters;

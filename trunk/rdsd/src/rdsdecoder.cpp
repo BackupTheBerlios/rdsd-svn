@@ -40,6 +40,22 @@ RDSdecoder::~RDSdecoder()
 
 }
 
+void RDSdecoder::SetLogHandler(LogHandler *loghandler)
+{
+  log = loghandler;
+}
+
+void RDSdecoder::LogMsg(LogLevel prio)
+{
+  if (log) log->LogMsg(prio,logstr.str());
+  logstr.str("");
+}
+
+void RDSdecoder::LogMsg(LogLevel prio, string msg)
+{
+  if (log) log->LogMsg(prio,msg);
+}
+
 rds_events_t RDSdecoder::GetAllEvents()
 {
   return events;
@@ -180,14 +196,15 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
       case GROUP_8A: chlist[curchind].tmc_list.AddGroup(group);
                      if (chlist[curchind].tmc_list.IsChanged()) set_event(RDS_EVENT_TMC);
 		     break;
-      case GROUP_14A: break; //TODO: properly implement this...
-                     /*{
+      case GROUP_14A: break; //TODO: impement this;
+                     {
                      unsigned int vtype = (group.GetByte(1, 0) & 0x0F);
                      int PIO = (group.GetByte(3,1) << 8 | group.GetByte(3,0));
-                     int choindex = lookup_PI(); 
-                     // cout << "Variant type: " << hex << vtype << endl;
-                     // cout << "PIT :" << hex << (group.GetByte(0,1) << 8 | group.GetByte(0,0)) << endl;
-                     // cout << "PIO :" << hex << (group.GetByte(3,1) << 8 | group.GetByte(3,0)) << endl;
+//                     int choindex = lookup_PI(); 
+                     logstr << "Variant type: " << hex << vtype << endl;
+                     logstr << "PIT : 0x" << hex << (group.GetByte(0,1) << 8 | group.GetByte(0,0)) << endl;
+                     logstr << "PIO : 0x" << hex << (group.GetByte(3,1) << 8 | group.GetByte(3,0)) << endl;
+                     LogMsg(LL_DEBUG);
                      switch (vtype) {
                          case 0x00:break;
                          case 0x01:break;
@@ -195,7 +212,9 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
                          case 0x03:break;
                          case 0x04:
                                    tmpEONAFlist.AddGroup(group);
-                                   // cout << "tmp: " << tmpEONAFlist.AsString() << endl;
+                                   logstr << "tmp: " << tmpEONAFlist.AsString();
+                                   LogMsg(LL_DEBUG);
+
                                    switch (tmpEONAFlist.GetStatus()){
                                        case AS_ERROR:    tmpEONAFlist.Clear();
                                                          break;
@@ -205,14 +224,16 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
                                                          break;
                                        default: ;
                                    }
-                                   // cout << "EONAF: " << chlist[curchind].EONAFlist.AsString() << endl;
+                                   logstr << "EONAF: " << chlist[curchind].EONAFlist.AsString();
+                                   LogMsg(LL_DEBUG);
                                    break;
                          case 0x05:
                          case 0x06:
                          case 0x07:
                          case 0x08:
                                    chlist[curchind].EONAFlist.AddGroup(group);
-                                   // cout << "EONAF: " << chlist[curchind].EONAFlist.AsString() << endl;
+                                   logstr << "EONAF: " << chlist[curchind].EONAFlist.AsString();
+                                   LogMsg(LL_DEBUG);
 
                                    break;
                          case 0x09:break;
@@ -225,7 +246,7 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
                      }
                          
                      break;
-      }*/
+      }
       	
 
       default: break;
@@ -316,7 +337,7 @@ void RDSdecoder::set_pi_code(int new_code)
 {
   vector<RDSchanneldata>::iterator channel;
   if (last_pi_code != new_code) {
-//      cout << "new pi code detected: " << new_code;
+  logstr << "new pi code detected: " << new_code << " ";
       set_event(RDS_EVENT_RX_FREQ);
       curchind = 0;
       for (channel = chlist.begin(); channel != chlist.end(); channel++) {
@@ -328,7 +349,8 @@ void RDSdecoder::set_pi_code(int new_code)
           RDSchanneldata newchannel(new_code);
           chlist.push_back(newchannel);
       }
-//  cout << "channel index: " << curchind << endl;
+  logstr << "channel index: " << curchind;
+  LogMsg(LL_DEBUG);
   }
   last_pi_code = new_code;
   set_event(RDS_EVENT_PI_CODE);

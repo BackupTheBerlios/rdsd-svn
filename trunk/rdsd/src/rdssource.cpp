@@ -65,6 +65,7 @@ string RDSsource::GetPath()
 void RDSsource::SetLogHandler(LogHandler *loghandler)
 {
   log = loghandler;
+  Data.SetLogHandler(loghandler);
 }
 
 string RDSsource::GetStatusStr()
