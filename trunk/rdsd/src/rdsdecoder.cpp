@@ -196,59 +196,71 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
       case GROUP_8A: chlist[curchind].tmc_list.AddGroup(group);
                      if (chlist[curchind].tmc_list.IsChanged()) set_event(RDS_EVENT_TMC);
 		     break;
-      case GROUP_14A: break; //TODO: impement this;
-                     {
-                     unsigned int vtype = (group.GetByte(1, 0) & 0x0F);
-                     int PIO = (group.GetByte(3,1) << 8 | group.GetByte(3,0));
-//                     int choindex = lookup_PI(); 
-                     logstr << "Variant type: " << hex << vtype << endl;
-                     logstr << "PIT : 0x" << hex << (group.GetByte(0,1) << 8 | group.GetByte(0,0)) << endl;
-                     logstr << "PIO : 0x" << hex << (group.GetByte(3,1) << 8 | group.GetByte(3,0)) << endl;
-                     LogMsg(LL_DEBUG);
-                     switch (vtype) {
-                         case 0x00:break;
-                         case 0x01:break;
-                         case 0x02:break;
-                         case 0x03:break;
-                         case 0x04:
-                                   tmpEONAFlist.AddGroup(group);
-                                   logstr << "tmp: " << tmpEONAFlist.AsString();
-                                   LogMsg(LL_DEBUG);
+      case GROUP_14A: 
+      case GROUP_14B: {
+                        unsigned int vtype = (group.GetByte(1, 0) & 0x0F);
+                        int PIO = (group.GetByte(3,1) << 8 | group.GetByte(3,0));
+                        int ochind = lookup_pi_code(PIO);
+                        if (ochind < 0)
+                          ochind = add_pi_code(PIO);
 
-                                   switch (tmpEONAFlist.GetStatus()){
-                                       case AS_ERROR:    tmpEONAFlist.Clear();
-                                                         break;
-                                       case AS_COMPLETE: chlist[curchind].EONAFlist = tmpEONAFlist;
-                                                         tmpEONAFlist.Clear();
-                                                         //set_event(RDS_EVENT_EON_AF_LIST);
-                                                         break;
-                                       default: ;
-                                   }
-                                   logstr << "EONAF: " << chlist[curchind].EONAFlist.AsString();
-                                   LogMsg(LL_DEBUG);
-                                   break;
-                         case 0x05:
-                         case 0x06:
-                         case 0x07:
-                         case 0x08:
-                                   chlist[curchind].EONAFlist.AddGroup(group);
-                                   logstr << "EONAF: " << chlist[curchind].EONAFlist.AsString();
-                                   LogMsg(LL_DEBUG);
+                        {
+                          logstr << "Variant type: " << hex << vtype << " ";
+                          logstr << "PIT : 0x" << hex << (group.GetByte(0,1) << 8 | group.GetByte(0,0)) << ", ";
+                          logstr << "PIO : 0x" << hex << (group.GetByte(3,1) << 8 | group.GetByte(3,0)) << ", ";
+                          logstr << "Oind: " << ochind;
+                          LogMsg(LL_DEBUG);
+                        }
+                        set_rds_flag(ochind, RDS_FLAG_IS_TP, (group.GetByte(2, 0) & 0x10) );
 
-                                   break;
-                         case 0x09:break;
-                         case 0x0a:break;
-                         case 0x0b:break;
-                         case 0x0c:break;
-                         case 0x0d:break;
-                         case 0x0e:break;
-                         case 0x0f:break;
-                     }
-                         
+                        if (group.GetGroupType()== GROUP_14A) {
+                          switch (vtype) {
+                            case 0x00:
+                            case 0x01:
+                            case 0x02:
+                            case 0x03: // Other network program name
+                              set_prog_name(ochind, vtype << 1, group.GetByte(2,1), group.GetByte(2,0));
+                              break;
+                            case 0x04: // AF type A information
+                              tmpEONAFlist.AddGroup(group);
+                              LogMsg(LL_DEBUG);
+
+                              switch (tmpEONAFlist.GetStatus()){
+                                case AS_ERROR:    tmpEONAFlist.Clear();
+                                                  break;
+                                case AS_COMPLETE: chlist[ochind].AFlist = tmpEONAFlist;
+                                                  tmpEONAFlist.Clear();
+                                                  break;
+                                default: ;
+                              }
+                              logstr << "EONAFA: " << tmpEONAFlist.AsString();
+                              LogMsg(LL_DEBUG);
+                              break;
+                            case 0x05:
+                            case 0x06:
+                            case 0x07:
+                            case 0x08:
+                            case 0x09: // AF linkage information
+                              chlist[ochind].AFlist.AddGroup(group);
+                              logstr << "EONAFB: " << chlist[ochind].AFlist.AsString();
+                              LogMsg(LL_DEBUG);
+
+                              break;
+                            case 0x0a:break; // Unallocated
+                            case 0x0b:break; // Unallocated
+                            case 0x0c:break; // Linkage information 
+                            case 0x0d: 
+                                      set_pty_code(ochind, group.GetByte(3, 1) >> 3);
+                                      set_rds_flag(ochind, RDS_FLAG_IS_TA, group.GetByte(3, 0) & 0x01);
+                                      break; 
+                            case 0x0e:break; // PIN
+                            case 0x0f:break; // Reserved for broadcast use
+                          }
+                        } else { // GROUP_14B
+                          set_rds_flag(ochind, RDS_FLAG_IS_TA, group.GetByte(2, 0) & 0x08);
+                        }
+                      }
                      break;
-      }
-      	
-
       default: break;
     } //switch
     group.Clear();
@@ -333,24 +345,45 @@ void RDSdecoder::set_rds_flag(int channelindex, rds_flags_t flag, bool new_state
   set_event(RDS_EVENT_FLAGS);
 }
 
-void RDSdecoder::set_pi_code(int new_code)
+int RDSdecoder::lookup_pi_code(int pi_code)
 {
   vector<RDSchanneldata>::iterator channel;
+  int chind = 0;
+  for (channel = chlist.begin(); channel != chlist.end(); channel++) {
+    if (channel->PIcode == pi_code) break;
+    chind++;
+  }
+  if (channel == chlist.end()) {
+    return -1;
+  } else {
+    return chind;
+  }
+}
+
+int RDSdecoder::add_pi_code(int pi_code) 
+{
+  int chind = chlist.size(); // one element after current last
+  RDSchanneldata newchannel(pi_code);
+  chlist.push_back(newchannel); // add channel
+  return chind;
+}
+
+void RDSdecoder::set_pi_code(int new_code)
+{
   if (last_pi_code != new_code) {
-  logstr << "new pi code detected: " << new_code << " ";
-      set_event(RDS_EVENT_RX_FREQ);
-      curchind = 0;
-      for (channel = chlist.begin(); channel != chlist.end(); channel++) {
-          if (channel->PIcode == new_code) break;
-          curchind++;
-      }
-      if (channel == chlist.end()) {
-          // new channel
-          RDSchanneldata newchannel(new_code);
-          chlist.push_back(newchannel);
-      }
-  logstr << "channel index: " << curchind;
-  LogMsg(LL_DEBUG);
+    // clear running AF lists
+    tmpAFlist.Clear();
+    tmpEONAFlist.Clear();
+    curchind = lookup_pi_code(new_code);
+    if (curchind < 0) {
+      // new channel
+      curchind = add_pi_code(new_code);
+    } 
+    
+    logstr << "new pi code detected: " << new_code << " ";
+    set_event(RDS_EVENT_RX_FREQ);
+    logstr << "channel index: " << curchind;
+    LogMsg(LL_DEBUG);
   }
   last_pi_code = new_code;
   set_event(RDS_EVENT_PI_CODE);
@@ -366,15 +399,17 @@ void RDSdecoder::set_prog_name(int channelindex, int first_index, char c1, char 
 {
   chlist[channelindex].set_prog_name(first_index, c1, c2);
   if (first_index == 6) {
-    set_event(RDS_EVENT_PROGRAMNAME);
-    /*
-    cout << chlist[curchind].program_name << " (";
+    if (channelindex == curchind)
+      set_event(RDS_EVENT_PROGRAMNAME); // maybe we need a RDS_EON_EVENT_PROGRAMNAM...
+    
+    
+    logstr << chlist[channelindex].GetPIcode() << ": " << chlist[channelindex].program_name << " (";
     for (int i=0; i<8; i++){
-      cout.setf(ios::hex, ios::basefield);
-      cout << (int)chlist[curchind].program_name[i] << " ";
+      logstr.setf(ios::hex, ios::basefield);
+      logstr << (int)chlist[channelindex].program_name[i] << " ";
     }
-    cout << ")" << endl;
-    */
+    logstr << ")";
+    LogMsg(LL_DEBUG);
   }
 }
 

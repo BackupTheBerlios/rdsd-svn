@@ -54,10 +54,11 @@ void AltFreqList::AddGroup(RDSgroup& group)
   int b1 = group.GetByte(2,0);
   
   if ((group.GetGroupType() == GROUP_14A) && vtype != 0x04) { //special case for EON mapped frequencies
-      int f = (100*(b1-1))+87600;
-      freq_list.resize(4);
-      set_freq(f, vtype-0x05);
-      status = AS_COMPLETE;
+    int EONf = freq_in_khz(b0);
+    if (vtype == 0x09) lfmf_follows = true;
+    int f = freq_in_khz(b1);
+    add_freq(f, false, EONf);
+    status = AS_COMPLETE; // completeness is never known with this method
   } else {
       switch (status){
           case AS_EMPTY     : if ((b0>=224)&&(b0<=249)){
@@ -74,7 +75,7 @@ void AltFreqList::AddGroup(RDSgroup& group)
                                   if ((b1>=1)&&(b1<=204)){
                                       int f = (100*(b1-1))+87600;
                                       first_freq = f;
-                                      add_freq(f,false);
+                                      add_freq(f,false,0);
                                   }
                                   else status = AS_ERROR;
                               }
@@ -96,6 +97,7 @@ const string& AltFreqList::AsString()
   oss << "AF list, count = " << freq_list.size() << endl; // Test only!
   for (int i=0; i<freq_list.size(); i++){
     if (freq_list[i].IsVariant) oss << "V "; else oss << "S ";
+    oss << freq_list[i].EonTNMapped << "->";
     oss << freq_list[i].Freq << endl;
   }
   list_string = oss.str();
@@ -109,17 +111,17 @@ bool AltFreqList::handle_freq_pair(int b0, int b1)
   int f2 = freq_in_khz(b1);
   if (f2<0) return false;
   if ((f1==first_freq)||(f2==first_freq)){ //Method B
-    if (f1==first_freq) add_freq(f2,(f2<f1));
-    else add_freq(f1,(f2<f1));
+    if (f1==first_freq) add_freq(f2,(f2<f1),0);
+    else add_freq(f1,(f2<f1),0);
     if (status == AS_ERROR) return false;
   }
   else{ //Method A
     if (f1>1){
-      add_freq(f1,false);
+      add_freq(f1,false,0);
       if (status == AS_ERROR) return false;
     }
     if (f2>1){
-      add_freq(f2,false);
+      add_freq(f2,false,0);
       if (status == AS_ERROR) return false;
     }
   }
@@ -145,29 +147,29 @@ int AltFreqList::freq_in_khz(int b)
   return result;
 }
 
-bool AltFreqList::add_freq(int freq, bool is_variant)
+bool AltFreqList::add_freq(int freq, bool is_variant, int EONTNfreq)
 {
-  if (freq_counter>0){
+  if ( (freq_counter > 0) || (EONTNfreq > 0) ) {
     AltFreq AF;
-    AF.Freq = freq;
-    AF.IsVariant = is_variant;
-    freq_list.push_back(AF);
-    freq_counter--;
-    if (freq_counter==0) status = AS_COMPLETE;
-    else status = AS_INCOMPLETE;
+    vector<AltFreq>::iterator iter;
+    for (iter = freq_list.begin(); iter < freq_list.end(); iter++)
+      if ( ( iter->Freq == freq ) && ( iter->EonTNMapped == EONTNfreq ) ) {
+        break;
+      }
+    if (iter == freq_list.end()) {
+      AF.Freq = freq;
+      AF.IsVariant = is_variant;
+      AF.EonTNMapped = EONTNfreq;
+      freq_list.push_back(AF);
+      freq_counter--;
+      if (freq_counter==0) status = AS_COMPLETE;
+      else status = AS_INCOMPLETE;
+    }
     return true;
   }
   status = AS_ERROR;
   return false;
 }
 
-bool AltFreqList::set_freq(int freq, int index)
-{
-    AltFreq AF;
-    AF.Freq = freq;
-    AF.IsVariant = false;
-    freq_list[index] = AF;
-    return true;
-}
 
 }

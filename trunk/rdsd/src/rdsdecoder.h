@@ -98,6 +98,9 @@ private:
   void set_pty_code(int channeldata, int new_code);
   void set_prog_name(int channeldata, int first_index, char c1, char c2);
   void set_datetime_strings();
+
+  int lookup_pi_code(int pi_code);
+  int add_pi_code(int pi_code);
   int block1_lower5;
 };
 

@@ -36,14 +36,16 @@ enum AFListStatus {AS_EMPTY, AS_INCOMPLETE, AS_ERROR, AS_COMPLETE};
 
 class AltFreq{
 public:
-  AltFreq() :Freq(-1), IsVariant(false) {}
-  AltFreq(const AltFreq& other) : Freq(other.Freq), IsVariant(other.IsVariant) {}
+  AltFreq() :Freq(-1), IsVariant(false), EonTNMapped(0) {}
+  AltFreq(const AltFreq& other) : Freq(other.Freq), IsVariant(other.IsVariant), EonTNMapped(other.EonTNMapped) {}
   int Freq;
+  int EonTNMapped;
   bool IsVariant;
   AltFreq& operator=(const AltFreq& rhs)
   {
     if (this == &rhs) return *this;
     Freq = rhs.Freq;
+    EonTNMapped = rhs.EonTNMapped;
     IsVariant = rhs.IsVariant;
     return *this;
   }
@@ -77,8 +79,7 @@ private:
   vector<AltFreq> freq_list;
   bool handle_freq_pair(int b0, int b1);
   int freq_in_khz(int b);
-  bool add_freq(int freq, bool is_variant);
-  bool set_freq(int freq, int index); // for EON AFlist
+  bool add_freq(int freq, bool is_variant, int EONTNfreq);
 };
 
 

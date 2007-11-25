@@ -22,11 +22,12 @@
 
 namespace std {
   
-RDSchanneldata::RDSchanneldata(int newPIcode)
+RDSchanneldata::RDSchanneldata(int newPIcode):
+program_name("        "),
+PIcode(newPIcode),
+PTYcode(-1)
 {
-  PIcode = newPIcode;
-  PTYcode = -1;
-  program_name.resize(8,'\r');
+
 }
 
 RDSchanneldata::~RDSchanneldata()
