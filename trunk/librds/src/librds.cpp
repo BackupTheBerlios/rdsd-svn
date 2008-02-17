@@ -128,10 +128,10 @@ int rds_set_debug_params(RDSConnectionHandle hnd, int debug_level, unsigned int 
 		  buf_size will receive the required size for buf.
   \return RDS_OK on success.
 */
-int rds_get_debug_text(RDSConnectionHandle hnd, char* buf, unsigned int& buf_size)
+int rds_get_debug_text(RDSConnectionHandle hnd, char* buf, unsigned int* buf_size)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetDebugTextBuffer(buf,buf_size);
+  return conn->GetDebugTextBuffer(buf,*buf_size);
 }
 
 /*!
@@ -175,10 +175,10 @@ int rds_set_event_mask(RDSConnectionHandle hnd, int src, rds_events_t evnt_mask)
   \param evnt_mask A variable that receives the event mask.
   \return RDS_OK on success,
 */
-int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t &evnt_mask)
+int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t *evnt_mask)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetEventMask(src, evnt_mask);
+  return conn->GetEventMask(src, *evnt_mask);
 }
 
 /*!
@@ -192,10 +192,10 @@ int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t &evnt_mask
                 call to rds_get_event().
   \return RDS_OK on success,
 */
-int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t &events)
+int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t *events)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetEvent(src, events);
+  return conn->GetEvent(src, *events);
 }
 
 /*!
@@ -206,10 +206,10 @@ int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t &events)
   \param flags Variable to receive the current status of the flags.
   \return RDS_OK on success,
 */
-int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t &flags)
+int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t *flags)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetFlags(src, flags);
+  return conn->GetFlags(src, *flags);
 }
 
 /*!
@@ -221,10 +221,10 @@ int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t &flags)
                   might use different codes.
   \return RDS_OK on success,
 */
-int rds_get_pty_code(RDSConnectionHandle hnd, int src, int &pty_code)
+int rds_get_pty_code(RDSConnectionHandle hnd, int src, int *pty_code)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetPTYcode(src, pty_code);
+  return conn->GetPTYcode(src, *pty_code);
 }
 
 /*!
@@ -235,10 +235,10 @@ int rds_get_pty_code(RDSConnectionHandle hnd, int src, int &pty_code)
   \param pi_code Variable to receive the current PI code.
   \return RDS_OK on success,
 */
-int rds_get_pi_code(RDSConnectionHandle hnd, int src, int &pi_code)
+int rds_get_pi_code(RDSConnectionHandle hnd, int src, int *pi_code)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetPIcode(src, pi_code);
+  return conn->GetPIcode(src, *pi_code);
 }
 
 /*!
@@ -323,10 +323,10 @@ int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf)
   \param bufsize Size of the buffer. Results will be truncated if the buffer is too small.
   \return RDS_OK on success,
 */
-int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
+int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t *bufsize)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetTMCBuffer(src,buf,bufsize);
+  return conn->GetTMCBuffer(src,buf, *bufsize);
 }
 
 /*!
@@ -338,10 +338,10 @@ int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufs
   \param bufsize Size, in bytes, of the buffer.
   \return RDS_OK on success,
 */
-int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
+int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t *bufsize)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetAltFreqBuffer(src,buf,bufsize);
+  return conn->GetAltFreqBuffer(src,buf, *bufsize);
 }
 
 /*!
@@ -351,10 +351,10 @@ int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsi
   \param frequency Variable to receive the tuner frequency.
   \return RDS_OK on success,
 */
-int rds_get_rx_frequency(RDSConnectionHandle hnd, int src, double &frequency)
+int rds_get_rx_frequency(RDSConnectionHandle hnd, int src, double *frequency)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetTunerFrequency(src,frequency);
+  return conn->GetTunerFrequency(src, *frequency);
 }
 
 /*!
@@ -371,10 +371,10 @@ int rds_set_rx_frequency(RDSConnectionHandle hnd, int src, double frequency)
 }
 
 //! Get the current receiver signal strength of a V4L2 radio source.
-int rds_get_rx_signal_strength(RDSConnectionHandle hnd, int src, int &strength)
+int rds_get_rx_signal_strength(RDSConnectionHandle hnd, int src, int *strength)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetTunerSignalStrength(src,strength);
+  return conn->GetTunerSignalStrength(src, *strength);
 }
 
 /*!
@@ -383,8 +383,9 @@ int rds_get_rx_signal_strength(RDSConnectionHandle hnd, int src, int &strength)
   \param src A valid source number, one of those returned by rds_enum_sources().
   \return RDS_OK on success,
 */
-int rds_get_group_stat_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize)
+int rds_get_group_stat_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t *bufsize)
 {
   RDSconnection* conn = (RDSconnection*)hnd;
-  return conn->GetGroupStatisticsBuffer(src,buf,bufsize);
+  return conn->GetGroupStatisticsBuffer(src,buf, *bufsize);
 }
+

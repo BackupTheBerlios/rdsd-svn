@@ -93,7 +93,7 @@ void RdsQueryHandler::ShowEnumSrc()
 void RdsQueryHandler::ShowFlags()
 {
   rds_flags_t flags;
-  int ret = rds_get_flags(handle,src_num,flags);
+  int ret = rds_get_flags(handle,src_num, &flags);
   cout << "rflags:";
   if (ret) ShowError(ret);
   else {
@@ -112,7 +112,7 @@ void RdsQueryHandler::ShowFlags()
 void RdsQueryHandler::ShowPIcode()
 {
   int result;
-  int ret = rds_get_pi_code(handle,src_num,result);
+  int ret = rds_get_pi_code(handle,src_num, &result);
   cout << "picode:";
   if (ret) ShowError(ret);
   else cout << result << endl;
@@ -121,7 +121,7 @@ void RdsQueryHandler::ShowPIcode()
 void RdsQueryHandler::ShowPTYcode()
 {
   int result;
-  int ret = rds_get_pty_code(handle,src_num,result);
+  int ret = rds_get_pty_code(handle,src_num, &result);
   cout << "ptype:";
   if (ret) ShowError(ret);
   else cout << result << endl;
@@ -197,14 +197,14 @@ void RdsQueryHandler::ShowGroupStatistics()
 {
   cout << "gstat:" << endl;
   size_t bufsize=0;
-  int ret = rds_get_group_stat_buffer(handle,src_num,0,bufsize);
+  int ret = rds_get_group_stat_buffer(handle,src_num,0, &bufsize);
   if (ret){
     ShowError(ret);
     return;
   }
   if (bufsize>0){
     vector<char> buf(bufsize);
-    ret = rds_get_group_stat_buffer(handle,src_num,&buf[0],bufsize);
+    ret = rds_get_group_stat_buffer(handle,src_num,&buf[0], &bufsize);
     if (ret){
       ShowError(ret);
       return;
@@ -218,14 +218,14 @@ void RdsQueryHandler::ShowAltFreqList()
 {
   cout << "aflist:" << endl;
   size_t bufsize=0;
-  int ret = rds_get_af_buffer(handle,src_num,0,bufsize);
+  int ret = rds_get_af_buffer(handle,src_num,0, &bufsize);
   if (ret){
     ShowError(ret);
     return;
   }
   if (bufsize>0){
     vector<char> buf(bufsize);
-    ret = rds_get_af_buffer(handle,src_num,&buf[0],bufsize);
+    ret = rds_get_af_buffer(handle,src_num,&buf[0], &bufsize);
     if (ret){
       ShowError(ret);
       return;
@@ -239,14 +239,14 @@ void RdsQueryHandler::ShowTMCList()
 {
   cout << "tmc:" << endl;
   size_t bufsize=0;
-  int ret = rds_get_tmc_buffer(handle,src_num,0,bufsize);
+  int ret = rds_get_tmc_buffer(handle,src_num,0, &bufsize);
   if (ret){
     ShowError(ret);
     return;
   }
   if (bufsize>0){
     vector<char> buf(bufsize);
-    ret = rds_get_tmc_buffer(handle,src_num,&buf[0],bufsize);
+    ret = rds_get_tmc_buffer(handle,src_num,&buf[0], &bufsize);
     if (ret){
       ShowError(ret);
       return;
@@ -260,7 +260,7 @@ void RdsQueryHandler::ShowTunerFrequency()
 {
   cout << "rxfre:";
   double freq;
-  int ret = rds_get_rx_frequency(handle,src_num,freq);
+  int ret = rds_get_rx_frequency(handle,src_num, &freq);
   if (ret){
     ShowError(ret);
     return;
@@ -285,7 +285,7 @@ void RdsQueryHandler::ShowSignalStrength()
 {
   cout << "rxsig:";
   int strength;
-  int ret = rds_get_rx_signal_strength(handle,src_num,strength);
+  int ret = rds_get_rx_signal_strength(handle,src_num, &strength);
   if (ret){
     ShowError(ret);
     return;
@@ -296,14 +296,14 @@ void RdsQueryHandler::ShowSignalStrength()
 void RdsQueryHandler::show_debug()
 {
   unsigned int buf_size = 0;
-  int ret = rds_get_debug_text(handle,0,buf_size); // query required size
+  int ret = rds_get_debug_text(handle,0, &buf_size); // query required size
   if (ret){
     ShowError(ret);
     return;
   }
   if (buf_size>0){
     vector<char> buf(buf_size);
-    rds_get_debug_text(handle,&buf[0],buf_size);
+    rds_get_debug_text(handle,&buf[0], &buf_size);
     string s(buf.begin(),buf.begin()+buf_size);
     cerr << s << endl;
   }

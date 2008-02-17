@@ -43,10 +43,10 @@ string my_unix_sock = "";
 void show_debug(RDSConnectionHandle hnd)
 {
   unsigned int buf_size = 0;
-  rds_get_debug_text(hnd,0,buf_size); // query required size
+  rds_get_debug_text(hnd,0,&buf_size); // query required size
   if (buf_size>0){
     vector<char> buf(buf_size);
-    rds_get_debug_text(hnd,&buf[0],buf_size);
+    rds_get_debug_text(hnd,&buf[0],&buf_size);
     string s(buf.begin(),buf.begin()+buf_size);
     cerr << s << endl;
   }
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
       if (events & RDS_EVENT_RX_FREQ) rds.ShowTunerFrequency();
       if (events & RDS_EVENT_RX_SIGNAL) rds.ShowSignalStrength();
   }
-  while (RDS_OK == rds_get_event(hnd,opts.GetSourceNum(),events)){
+  while (RDS_OK == rds_get_event(hnd,opts.GetSourceNum(),&events)){
     if (events & RDS_EVENT_FLAGS) rds.ShowFlags();
     if (events & RDS_EVENT_PI_CODE) rds.ShowPIcode();
     if (events & RDS_EVENT_PTY_CODE) rds.ShowPTYcode();

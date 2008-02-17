@@ -178,7 +178,9 @@ enum RdsDebugLevels {
   RDS_DEBUG_ALL      //!< A lot of details only usefull for developers
 };
 
+#ifdef __cplusplus
 extern "C" {
+#endif 
 
 //! Create a connection object
 RDSConnectionHandle rds_create_connection_object();
@@ -194,21 +196,21 @@ int rds_set_timeout_time(RDSConnectionHandle hnd, unsigned int timeout_msec);
 //! Set debug parameters.
 int rds_set_debug_params(RDSConnectionHandle hnd, int debug_level, unsigned int max_lines);
 //! Get stored debug messages or query the required buffer size.
-int rds_get_debug_text(RDSConnectionHandle hnd, char* buf, unsigned int& buf_size);
+int rds_get_debug_text(RDSConnectionHandle hnd, char* buf, unsigned int* buf_size);
 //! Enumerate the sources that rdsd knows about.
 int rds_enum_sources(RDSConnectionHandle hnd, char* buf, size_t bufsize);
 //! Set the event mask for a RDS data source.
 int rds_set_event_mask(RDSConnectionHandle hnd, int src, rds_events_t evnt_mask);
 //! Query the event mask that is used for a RDS data source.
-int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t &evnt_mask);
+int rds_get_event_mask(RDSConnectionHandle hnd, int src, rds_events_t *evnt_mask);
 //! Find out which events were signaled by a data source.
-int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t &events);
+int rds_get_event(RDSConnectionHandle hnd, int src, rds_events_t *events);
 //! Get RDS flags data.
-int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t &flags);
+int rds_get_flags(RDSConnectionHandle hnd, int src, rds_flags_t *flags);
 //! Get RDS program type code.
-int rds_get_pty_code(RDSConnectionHandle hnd, int src, int &pty_code);
+int rds_get_pty_code(RDSConnectionHandle hnd, int src, int *pty_code);
 //! Get RDS program identification code.
-int rds_get_pi_code(RDSConnectionHandle hnd, int src, int &pi_code);
+int rds_get_pi_code(RDSConnectionHandle hnd, int src, int *pi_code);
 //! Get RDS program name (Usually the abbreviation of the station name).
 int rds_get_program_name(RDSConnectionHandle hnd, int src, char* buf);
 //! Get the current radio text buffer. 
@@ -220,17 +222,19 @@ int rds_get_utc_datetime_string(RDSConnectionHandle hnd, int src, char* buf);
 //! Get the last local date/time as a string.
 int rds_get_local_datetime_string(RDSConnectionHandle hnd, int src, char* buf);
 //! Get the TMC message buffer or query the required buffer size.
-int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize);
+int rds_get_tmc_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t *bufsize);
 //! Get the alternative frequencies buffer or query the required buffer size.
-int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize);
+int rds_get_af_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t *bufsize);
 //! Get the current receiver frequency of a V4L2 radio source.
-int rds_get_rx_frequency(RDSConnectionHandle hnd, int src, double &frequency);
+int rds_get_rx_frequency(RDSConnectionHandle hnd, int src, double *frequency);
 //! Set the current receiver frequency of a V4L2 radio source.
 int rds_set_rx_frequency(RDSConnectionHandle hnd, int src, double frequency);
 //! Get the current receiver signal strength of a V4L2 radio source.
-int rds_get_rx_signal_strength(RDSConnectionHandle hnd, int src, int &strength);
+int rds_get_rx_signal_strength(RDSConnectionHandle hnd, int src, int *strength);
 //! Get the RDS group statistics buffer or query the required buffer size.
-int rds_get_group_stat_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t &bufsize);
+int rds_get_group_stat_buffer(RDSConnectionHandle hnd, int src, char* buf, size_t *bufsize);
+#ifdef __cplusplus
 }
+#endif
 
 #endif
