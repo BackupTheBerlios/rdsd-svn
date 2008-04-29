@@ -38,7 +38,8 @@ RdsqOptions::RdsqOptions()
     event_mask(0), freq_to_set(-1.0),
     have_opt_e(false), have_opt_f(false),
     have_opt_s(false), have_opt_p(false),
-    have_opt_t(false), have_opt_u(false)
+    have_opt_t(false), have_opt_u(false),
+    have_opt_i(false)
 {
 
 }
