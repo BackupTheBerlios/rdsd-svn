@@ -110,7 +110,7 @@ int RDSconnection::GetDebugTextBuffer(char* buf, size_t& buf_size)
     buf_size=0;
     unsigned int i=first_debug_line;
     while (i != next_debug_line){
-      buf_size += debug_msg_buf[i].size();
+      buf_size += debug_msg_buf.at(i).size();
       buf_size += 1; // line feed char
       ++i;
       if (i >= max_debug_lines) i=0;
@@ -121,7 +121,7 @@ int RDSconnection::GetDebugTextBuffer(char* buf, size_t& buf_size)
   size_t size=0;
   char *ptr = buf;
   while ((i != next_debug_line)&&(size < buf_size)){
-    size_t len = debug_msg_buf[i].size();
+    size_t len = debug_msg_buf.at(i).size();
     if ((size+len)<buf_size){
       memcpy(ptr,debug_msg_buf[i].c_str(),len);
       ptr += len;
@@ -132,6 +132,7 @@ int RDSconnection::GetDebugTextBuffer(char* buf, size_t& buf_size)
     ++i;
     if (i >= max_debug_lines) i=0;
   }
+  first_debug_line = i; // everything up to i is returned...
   *ptr = 0;
   return RDS_OK;
 }
@@ -476,7 +477,10 @@ void RDSconnection::debug_msg(int debug_level, const string& msg)
     debug_msg_buf[next_debug_line] = msg;
     next_debug_line++;
     if (next_debug_line >= max_debug_lines) next_debug_line=0;
-    if (next_debug_line == first_debug_line) first_debug_line++;
+    if (next_debug_line == first_debug_line) {
+      first_debug_line++;
+      if (first_debug_line >= max_debug_lines) first_debug_line=0;
+    }
   }
 }
 
@@ -792,6 +796,7 @@ bool RDSconnection::process_event_msg()
   if (event_code & RDS_EVENT_GROUP_STAT)     send_command(src,"gstat","");
   if (event_code & RDS_EVENT_AF_LIST)        send_command(src,"aflist","");
   if (event_code & RDS_EVENT_RX_FREQ)        send_command(src,"rxfre","");
+  if (event_code & RDS_EVENT_RX_SIGNAL)      send_command(src,"rxsig","");
   return true;
 }
 
