@@ -54,6 +54,7 @@ public:
   void SetAllEvents(rds_events_t evts);
   void AddEvents(rds_events_t evts);
   void ClearEvents(rds_events_t evts);
+  void FreqChanged();
   void AddBytes(CharBuf* Buf);
   rds_flags_t GetRDSFlags();
   const string& GetRadioText();

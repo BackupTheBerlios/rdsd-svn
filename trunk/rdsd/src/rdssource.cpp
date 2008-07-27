@@ -167,7 +167,7 @@ int RDSsource::Process()
 {
   if (status != SRCSTAT_CLOSED){
     CharBuf buf(300);
-    int ret;
+    int ret = 0;
     unsigned char tmp;
     unsigned char blocknum;
     switch (src_type){
@@ -175,7 +175,15 @@ int RDSsource::Process()
              return RDSD_NO_SOURCE_TYPE;
              break;
       case SRCTYPE_RADIODEV:
+             int freq;
              ret = read(fd,&buf[0],buf.size());
+             GetRadioFreq(freq);
+             if (freq != tuner_freq_khz) {
+               Data.FreqChanged();
+               tuner_freq_khz = freq;
+               // the following is a bit of a hack; how will we know when there's no more data coming from the old channel???
+               ret = 0; 
+             }
              break;
       case SRCTYPE_FILE:
              ret = read(fd,&buf[0],3);

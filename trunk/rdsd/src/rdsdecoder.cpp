@@ -32,7 +32,8 @@ RDSdecoder::RDSdecoder()
   good_group_counters.resize(33,0);
   bad_group_counters.resize(33,0);
   group_counters_cnt = 0;
-  last_pi_code = -1;
+  last_pi_code = -2;
+  set_pi_code(-1);
 }
 
 RDSdecoder::~RDSdecoder()
@@ -76,6 +77,11 @@ void RDSdecoder::ClearEvents(rds_events_t evts)
   events &= (~evts);
 }
  
+void RDSdecoder::FreqChanged()
+{
+  set_event(RDS_EVENT_RX_FREQ);
+  set_pi_code(-1);
+}
 
 // AddBytes() assumes that the first byte in Buf is the beginning of a block
 // and that Buf.size() is a multiple of 3
@@ -99,6 +105,9 @@ void RDSdecoder::AddBytes(CharBuf* Buf)
                           if (group_counters_cnt>10){
                             set_event(RDS_EVENT_GROUP_STAT);
                             group_counters_cnt = 0;
+                            // interesting information even without valid blocks
+                            set_event(RDS_EVENT_RX_SIGNAL);
+                            set_event(RDS_EVENT_RX_FREQ);
                           }
                           group.Clear();
                           continue;
@@ -381,7 +390,15 @@ void RDSdecoder::set_pi_code(int new_code)
     } 
     
     logstr << "new pi code detected: " << new_code << " ";
-    set_event(RDS_EVENT_RX_FREQ);
+    set_event(
+      RDS_EVENT_RX_FREQ|
+      RDS_EVENT_PI_CODE|
+      RDS_EVENT_PROGRAMNAME|
+      RDS_EVENT_RX_SIGNAL|
+      RDS_EVENT_RADIOTEXT|
+      RDS_EVENT_LAST_RADIOTEXT|
+      RDS_EVENT_PTY_CODE
+      );
     logstr << "channel index: " << curchind;
     LogMsg(LL_DEBUG);
   }
