@@ -24,9 +24,10 @@
 #endif
 
 #include "rdshandler.h"
+#include <cstdlib>
 #include <csignal>
 #include <fcntl.h>
-#include <string>
+#include <cstring>
 #include <sstream>
 
 using namespace std;

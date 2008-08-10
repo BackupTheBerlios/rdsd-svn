@@ -626,7 +626,7 @@ int RDSconnection::process()
 {
   if (sock_fd<0) return RDS_SOCKET_NOT_OPEN;
   int rd_cnt = read(sock_fd,&read_buf[0],read_buf.size());
-  if (rd_cnt<0) return RDS_READ_ERROR;
+  if (rd_cnt<=0) return RDS_READ_ERROR;
   enum ScanState {ssEOL=0,ssData,ssTerm,ssEvent};
   ScanState state = (ScanState)last_scan_state;
   int n, i=0;
