@@ -66,6 +66,7 @@ private:
   int fd;
   int freq_factor;
   bool use_v4l1;
+  bool getfreq;
   SourceStatus status;
   LogHandler *log;
   void LogMsg(LogLevel prio, string msg);

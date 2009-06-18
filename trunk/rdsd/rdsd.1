@@ -66,6 +66,7 @@ loglevel = 5
 name = "Terratec PCI card"
 path = "/dev/radio0"
 type = "radiodev"
+getradiofreq = true
 tunerfreq = 93800
 
 [source]
@@ -139,6 +140,11 @@ If the type of the source is "radiodev", rdsd can tune your radio to the
 frequency given here. This is done once at startup. The frequency is given in
 kHz. If you don't specify tunerfreq, rdsd won't touch the radio tuner. In that
 case you need some external application to tune your radio.
+
+.TP
+\fBgetradiofreq\fR
+If false, prevents rdsd from constantly polling the radio device for its current
+frequency, which causes audible clicks in the audio of some radios.
 
 .SH "PROTOCOL"
 .LP 

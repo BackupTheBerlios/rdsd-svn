@@ -295,7 +295,7 @@ void RdsQueryHandler::ShowSignalStrength()
 
 void RdsQueryHandler::show_debug()
 {
-  unsigned int buf_size = 0;
+  size_t buf_size = 0;
   int ret = rds_get_debug_text(handle,0, &buf_size); // query required size
   if (ret){
     ShowError(ret);

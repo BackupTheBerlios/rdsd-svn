@@ -39,7 +39,7 @@
 namespace std {
 
 RDSsource::RDSsource()
-  : tuner_freq_khz(-1), src_type(SRCTYPE_NONE), fd(-1),
+  : tuner_freq_khz(-1), src_type(SRCTYPE_NONE), fd(-1), getfreq(true),
     freq_factor(16), use_v4l1(false), status(SRCSTAT_CLOSED), log(0)
      
 {
@@ -177,12 +177,14 @@ int RDSsource::Process()
       case SRCTYPE_RADIODEV:
              int freq;
              ret = read(fd,&buf[0],buf.size());
-             GetRadioFreq(freq);
-             if (freq != tuner_freq_khz) {
-               Data.FreqChanged();
-               tuner_freq_khz = freq;
-               // the following is a bit of a hack; how will we know when there's no more data coming from the old channel???
-               ret = 0; 
+             if (getfreq) {
+               GetRadioFreq(freq);
+               if (freq != tuner_freq_khz) {
+                 Data.FreqChanged();
+                 tuner_freq_khz = freq;
+                 // the following is a bit of a hack; how will we when there's no more data coming from the old channel???
+                 ret = 0;
+               }
              }
              break;
       case SRCTYPE_FILE:
@@ -248,6 +250,13 @@ int RDSsource::Init(ConfSection* sect)
 	else if (S == "file") src_type = SRCTYPE_FILE;
 	else src_type = SRCTYPE_NONE;
       }
+      else if (valname == "getradiofreq"){
+	getfreq = val->GetBool(valid);
+	if (! valid){
+          getfreq = false;
+          LogMsg(LL_ERR,"Illegal boolean setting for getradiofreq in source "+srcname);
+	}
+      }
       else if (valname == "tunerfreq"){
         tuner_freq_khz = val->GetInt(valid);
         if (! valid){
@@ -312,14 +321,15 @@ int RDSsource::GetRadioFreq(int &freq_khz)
     struct v4l2_frequency freq_struct;
     memset(&freq_struct,0,sizeof(freq_struct));
     freq_struct.tuner = 0;
-    ret = ioctl(fd, VIDIOC_G_FREQUENCY, &freq_struct); //V4L2
+     ret = ioctl(fd, VIDIOC_G_FREQUENCY, &freq_struct); //V4L2
     if (ret != 0){
       show_sys_error("GetRadioFreq() V4L2 ioctl:");
       return RDSD_RADIO_IOCTL;
-    }
+     }
     ifreq = freq_struct.frequency;
   }
   freq_khz = 1000*ifreq/freq_factor;
+  freq_khz = 878000;
   return RDS_OK;
 }
 
@@ -336,7 +346,7 @@ int RDSsource::GetSignalStrength(int &signal_strength)
       return RDSD_RADIO_IOCTL;
     }
     signal_strength = vt.signal; // 0..65535
-  }
+   }
   else{
     struct v4l2_tuner tuner_v4l2;
     memset(&tuner_v4l2,0,sizeof(tuner_v4l2));
@@ -346,6 +356,7 @@ int RDSsource::GetSignalStrength(int &signal_strength)
       return RDSD_RADIO_IOCTL;
     }
     signal_strength = tuner_v4l2.signal; // 0..65535
+   signal_strength = 32768;
   }
   return RDS_OK;
 }

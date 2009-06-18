@@ -42,7 +42,7 @@ string my_unix_sock = "";
 
 void show_debug(RDSConnectionHandle hnd)
 {
-  unsigned int buf_size = 0;
+  size_t buf_size = 0;
   rds_get_debug_text(hnd,0,&buf_size); // query required size
   if (buf_size>0){
     vector<char> buf(buf_size);
