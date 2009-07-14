@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
       if (events & RDS_EVENT_AF_LIST) rds.ShowAltFreqList();
       if (events & RDS_EVENT_RX_FREQ) rds.ShowTunerFrequency();
       if (events & RDS_EVENT_RX_SIGNAL) rds.ShowSignalStrength();
-  }
+  } else
   while (RDS_OK == rds_get_event(hnd,opts.GetSourceNum(),&events)){
     if (events & RDS_EVENT_FLAGS) rds.ShowFlags();
     if (events & RDS_EVENT_PI_CODE) rds.ShowPIcode();
