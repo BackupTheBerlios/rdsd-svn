@@ -53,9 +53,19 @@ void TMClist::AddGroup(RDSgroup& group)
   ostringstream oss;
   int i;
   switch (type){
-    case TMC_GROUP:  oss << "G evt=" << event << " loc=" << location;
-                     oss << " ext=" << extent << " CI=" << CI;
-                     oss << " dir=" << direction << " div=" << diversion;
+    case TMC_GROUP:  if ((CI >= 1) & (CI <= 6)) {
+                       /* CI=0 is for encrypted TMCpro */
+                       /* CI=7 is reserved for future use */
+                       if (diversion) {
+                         /* first group */
+                         oss << "GF evt=" << event << " loc=" << location;
+                         oss << " ext=" << extent << " CI=" << CI;
+                         oss << " dir=" << direction;
+                       } else {
+                         /* subsequent groups */
+                         oss << "GS CI=" << CI << " GSI=" << GSI;
+                         oss << " F1=" << event << " F2=" << location; // Free Format
+                       }
                      break;
     case TMC_SINGLE: oss << "S evt=" << event << " loc=" << location;
                      oss << " ext=" << extent << " dur=" << duration;
